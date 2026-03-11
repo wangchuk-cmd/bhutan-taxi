@@ -1,0 +1,537 @@
+/* ==================== MOBILE OPTIMIZATIONS ==================== */
+
+:root {
+    --primary: #2563eb;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --dark: #1f2937;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-500: #6b7280;
+}
+
+/* ==================== NAVBAR WITH AUTO-HIDE ON SCROLL ==================== */
+.navbar {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    z-index: 1030;
+}
+
+.navbar.navbar-hide {
+    transform: translateY(-100%);
+}
+
+.navbar.navbar-show {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* ==================== BOOKING CARDS - MOBILE OPTIMIZED ==================== */
+.booking-card {
+    border-radius: 12px;
+    border-left: 4px solid var(--primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.booking-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.booking-card.cancelled {
+    border-left-color: var(--danger);
+    opacity: 0.8;
+}
+
+.booking-card .card-header {
+    background: linear-gradient(135deg, #f3f4f6, #ffffff);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.booking-card-body {
+    padding: 16px;
+}
+
+.booking-card .route-title {
+    font-size: 16px;
+    font-weight: 600;
+    word-break: break-word;
+    line-height: 1.3;
+}
+
+.booking-card .badge {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+.booking-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 12px 0;
+}
+
+.booking-info-item {
+    background: var(--gray-100);
+    padding: 10px;
+    border-radius: 8px;
+    text-align: left;
+}
+
+.booking-info-item small {
+    display: block;
+    font-size: 11px;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.booking-info-item .info-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dark);
+    display: block;
+}
+
+.booking-card .card-footer {
+    background: transparent;
+    padding: 12px 0 0 0;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.booking-card .card-footer > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.booking-card .card-footer > div:last-child {
+    margin-left: auto;
+}
+
+.booking-amount {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--success);
+}
+
+.booking-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.booking-actions .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.booking-actions .btn:active {
+    transform: scale(0.95);
+}
+
+/* ==================== RESPONSIVE BOOKINGS GRID ==================== */
+.bookings-container {
+    padding: 16px;
+}
+
+.bookings-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+@media (min-width: 576px) {
+    .bookings-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 768px) {
+    .bookings-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .bookings-container {
+        padding: 24px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .bookings-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ==================== STAT CARDS - DRIVER/ADMIN DASHBOARD ==================== */
+.stat-card {
+    border-radius: 12px;
+    padding: 20px;
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.stat-card:active {
+    transform: scale(0.98);
+}
+
+.stat-card h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+.stat-card h6 {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.stat-card.primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+}
+
+.stat-card.success {
+    background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+}
+
+.stat-card.secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+}
+
+.stat-card.warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+}
+
+.stat-card.danger {
+    background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .stats-row {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* ==================== DRIVER CARDS - MOBILE OPTIMIZED ==================== */
+.driver-card {
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.driver-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.driver-card-header {
+    background: linear-gradient(135deg, var(--primary), #06b6d4);
+    color: white;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.driver-avatar {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 20px;
+}
+
+.driver-card-body {
+    padding: 16px;
+}
+
+.driver-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--dark);
+}
+
+.driver-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray-200);
+    font-size: 13px;
+}
+
+.driver-info-row:last-child {
+    border-bottom: none;
+}
+
+.driver-info-label {
+    color: var(--gray-500);
+    font-weight: 500;
+}
+
+.driver-info-value {
+    color: var(--dark);
+    font-weight: 600;
+}
+
+/* ==================== ADMIN SECTION CARDS ==================== */
+.admin-card {
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin-bottom: 16px;
+}
+
+.admin-card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.admin-card-header {
+    background: var(--gray-100);
+    padding: 16px;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--dark);
+    margin: 0;
+}
+
+.admin-card-body {
+    padding: 16px;
+}
+
+.admin-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+@media (min-width: 768px) {
+    .admin-stats {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.admin-stat-item {
+    background: var(--gray-100);
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.admin-stat-number {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 4px;
+}
+
+.admin-stat-label {
+    font-size: 12px;
+    color: var(--gray-500);
+    text-transform: uppercase;
+}
+
+/* ==================== TABLE MOBILE RESPONSIVE ==================== */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+}
+
+.table {
+    margin-bottom: 0;
+    font-size: 13px;
+}
+
+.table thead th {
+    background: var(--gray-100);
+    padding: 12px 8px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.table tbody td {
+    padding: 12px 8px;
+    vertical-align: middle;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid var(--gray-200);
+    transition: background 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background: var(--gray-100);
+}
+
+/* ==================== CONTAINER & SPACING ==================== */
+.container {
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+@media (min-width: 768px) {
+    .container {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+}
+
+/* ==================== PAGE TITLE MOBILE ==================== */
+.page-title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 24px;
+    padding-top: 16px;
+}
+
+@media (max-width: 576px) {
+    .page-title {
+        font-size: 20px;
+        margin-bottom: 16px;
+        padding-top: 12px;
+    }
+}
+
+/* ==================== BUTTONS MOBILE ==================== */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.btn-lg {
+    padding: 12px 24px;
+    font-size: 16px;
+}
+
+/* ==================== MODALS & OVERLAYS ==================== */
+.modal-dialog {
+    margin: 16px;
+}
+
+@media (max-width: 480px) {
+    .modal-dialog {
+        margin: 0;
+        width: calc(100% - 32px);
+    }
+
+    .modal-content {
+        border-radius: 12px 12px 0 0;
+    }
+}
+
+/* ==================== STICKY FOOTER ==================== */
+.sticky-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid var(--gray-200);
+    padding: 12px 16px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+    z-index: 100;
+}
+
+/* Add bottom padding to body when sticky footer is present */
+body.has-sticky-footer {
+    padding-bottom: 80px;
+}
+
+/* ==================== SMOOTH SCROLLING ==================== */
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==================== FORM INPUTS MOBILE ==================== */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid var(--gray-200);
+    padding: 10px 12px;
+    font-size: 16px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ==================== LOADING STATES ==================== */
+.spinner-border {
+    width: 2rem;
+    height: 2rem;
+}
+
+.loading-skeleton {
+    background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ==================== SAFE AREA FOR NOTCH DEVICES ==================== */
+@supports (padding: max(0px)) {
+    body {
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+    }
+    
+    .navbar {
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+    }
+}
