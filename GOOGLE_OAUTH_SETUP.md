@@ -138,6 +138,12 @@ php artisan config:clear
 - Search for "Google+ API" and enable it
 - Wait a few minutes for it to propagate
 
+### Error: "Unable to login with Google. Please try again or use email/password login."
+This generic message is thrown when the application catches an exception during the callback.
+Check `storage/logs/laravel.log` for details. A common cause is the `users.phone_number` column not
+allowing null values; Google often doesn't return a phone number. The controller now generates a
+placeholder (`google_{id}`) but you can also make the column nullable with a migration as described above.
+
 ### Users can't link Google to existing accounts
 This is by design for security. If a user:
 1. Registers with email/password

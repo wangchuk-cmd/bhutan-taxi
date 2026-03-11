@@ -45,11 +45,17 @@ class GoogleAuthController extends Controller
             }
             
             // Create new user
+            // Determine a phone number placeholder if Google didn't provide one
+            // the users table currently requires a unique, non-null phone_number so
+            // we generate a stable fallback to avoid database errors. We could also
+            // make the column nullable in a future migration instead.
+            $phone = $googleUser->phone_number ?: 'google_'.$googleUser->id;
+
             $user = User::create([
                 'name' => $googleUser->name,
                 'email' => $googleUser->email,
                 'google_id' => $googleUser->id,
-                'phone_number' => $googleUser->phone_number ?? null,
+                'phone_number' => $phone,
                 'password' => Hash::make(Str::random(24)), // Random password for Google users
                 'role' => 'passenger',
                 'email_verified_at' => now(), // Google email is already verified
