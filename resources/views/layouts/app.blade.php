@@ -33,7 +33,7 @@
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-        <div class="container">
+        <div class="container-fluid px-3">
             <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
                 <i class="bi bi-taxi-front-fill me-2"></i>
                 Bhutan Taxi
