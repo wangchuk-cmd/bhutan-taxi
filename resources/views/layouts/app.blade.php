@@ -26,14 +26,13 @@
     <!-- Mobile App Styles -->
     <link href="{{ asset('css/mobile-app.css') }}" rel="stylesheet">
     <link href="{{ asset('css/home-professional.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/mobile-responsive.css') }}" rel="stylesheet">
     
     @stack('styles')
 </head>
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-        <div class="container-fluid px-3">
+        <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
                 <i class="bi bi-taxi-front-fill me-2"></i>
                 Bhutan Taxi
@@ -287,9 +286,6 @@
     
     <!-- Real-time Updates -->
     <script src="{{ asset('js/realtime-updates.js') }}"></script>
-    
-    <!-- Mobile Responsive -->
-    <script src="{{ asset('js/mobile-responsive.js') }}"></script>
     
     <!-- Phone Number Validation -->
     <script src="{{ asset('js/phone-validation.js') }}"></script>

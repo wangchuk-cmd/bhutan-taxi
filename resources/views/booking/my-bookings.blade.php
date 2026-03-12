@@ -3,94 +3,81 @@
 @section('title', 'My Bookings')
 
 @section('content')
-<div class="bookings-container">
-    <h1 class="page-title"><i class="bi bi-ticket-perforated me-2"></i>My Bookings</h1>
+<div class="container py-4">
+    <h2 class="mb-4"><i class="bi bi-ticket-perforated me-2"></i>My Bookings</h2>
 
     @if($bookings->count() > 0)
-        <div class="bookings-grid">
+        <div class="row g-2 g-sm-3">
             @foreach($bookings as $booking)
-                <div class="booking-card {{ $booking->status === 'cancelled' ? 'cancelled' : '' }}">
-                    <!-- Card Header -->
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-start gap-2">
-                            <div class="route-title">
-                                {{ $booking->trip->origin_dzongkhag }}
-                                <i class="bi bi-arrow-right"></i>
-                                {{ $booking->trip->destination_dzongkhag }}
-                            </div>
-                            @if($booking->status === 'active')
-                                @if($booking->payment_status === 'paid')
-                                    <span class="badge bg-success flex-shrink-0">Confirmed</span>
+                <div class="col-6 col-lg-6">
+                    <div class="card h-100 {{ $booking->status === 'cancelled' ? 'border-start border-danger border-3' : 'border-start border-primary border-2' }}">
+                        <div class="card-body p-3">
+
+                            {{-- Route + Status --}}
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="route-title mb-0 me-2 flex-grow-1">
+                                    {{ $booking->trip->origin_dzongkhag }}
+                                    <i class="bi bi-arrow-right text-primary"></i>
+                                    {{ $booking->trip->destination_dzongkhag }}
+                                </h5>
+                                @if($booking->status === 'active')
+                                    @if($booking->payment_status === 'paid')
+                                        <span class="badge bg-success flex-shrink-0">Confirmed</span>
+                                    @else
+                                        <span class="badge bg-warning text-dark flex-shrink-0">Pending</span>
+                                    @endif
                                 @else
-                                    <span class="badge bg-warning text-dark flex-shrink-0">Pending</span>
+                                    <span class="badge bg-danger flex-shrink-0">Cancelled</span>
                                 @endif
-                            @else
-                                <span class="badge bg-danger flex-shrink-0">Cancelled</span>
-                            @endif
-                        </div>
-                    </div>
+                            </div>
 
-                    <!-- Card Body -->
-                    <div class="booking-card-body">
-                        <!-- Info Grid -->
-                        <div class="booking-info-grid">
-                            <div class="booking-info-item">
-                                <small><i class="bi bi-calendar3 me-1"></i>Date</small>
-                                <span class="info-value">{{ $booking->trip->departure_datetime->format('M d') }}</span>
+                            {{-- Info Grid --}}
+                            <div class="booking-info-grid mb-3">
+                                <div class="booking-info-item">
+                                    <small>Date</small>
+                                    <span class="info-value">{{ $booking->trip->departure_datetime->format('M d, Y') }}</span>
+                                </div>
+                                <div class="booking-info-item">
+                                    <small>Time</small>
+                                    <span class="info-value">{{ $booking->trip->departure_datetime->format('h:i A') }}</span>
+                                </div>
+                                <div class="booking-info-item">
+                                    <small>Seats</small>
+                                    <span class="info-value">{{ $booking->seats_booked }} ({{ ucfirst($booking->booking_type) }})</span>
+                                </div>
+                                <div class="booking-info-item">
+                                    <small>Driver</small>
+                                    <span class="info-value">{{ $booking->trip->driver->user->name }}</span>
+                                </div>
                             </div>
-                            <div class="booking-info-item">
-                                <small><i class="bi bi-clock me-1"></i>Time</small>
-                                <span class="info-value">{{ $booking->trip->departure_datetime->format('h:i A') }}</span>
-                            </div>
-                            <div class="booking-info-item">
-                                <small><i class="bi bi-people me-1"></i>Seats</small>
-                                <span class="info-value">{{ $booking->seats_booked }}</span>
-                            </div>
-                            <div class="booking-info-item">
-                                <small><i class="bi bi-person-badge me-1"></i>Driver</small>
-                                <span class="info-value">{{ substr($booking->trip->driver->user->name, 0, 15) }}</span>
-                            </div>
-                        </div>
 
-                        <!-- Amount & Actions -->
-                        <div class="card-footer">
-                            <div>
-                                <span class="booking-amount">Nu. {{ number_format($booking->total_amount, 2) }}</span>
-                                @if($booking->refund_status === 'refunded')
-                                    <span class="badge bg-info ms-1">Refunded</span>
-                                @endif
+                            {{-- Amount + Actions --}}
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <div>
+                                    <span class="fw-bold text-success fs-5">Nu. {{ number_format($booking->total_amount, 2) }}</span>
+                                    @if($booking->refund_status === 'refunded')
+                                        <span class="badge bg-info ms-1">Refunded</span>
+                                    @endif
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ route('bookings.show', $booking->id) }}" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </a>
+                                    @if($booking->canCancel())
+                                        <form action="{{ route('booking.cancel', $booking->id) }}" method="POST"
+                                              onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                                            @csrf
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </div>
-                            <div class="booking-actions">
-                                <a href="{{ route('bookings.show', $booking->id) }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye"></i> View
-                                </a>
-                                @if($booking->canCancel())
-                                    <form action="{{ route('booking.cancel', $booking->id) }}" method="POST" style="display: inline;">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel this booking?')">
-                                            <i class="bi bi-x-circle"></i>
-                                        </button>
-                                    </form>
-                                @endif
-                            </div>
+
                         </div>
                     </div>
                 </div>
-            @endforeach
-        </div>
-    @else
-        <div style="text-align: center; padding: 60px 20px;">
-            <i class="bi bi-inbox" style="font-size: 48px; opacity: 0.3; display: block; margin-bottom: 20px;"></i>
-            <h5 style="color: #6b7280;">No bookings yet</h5>
-            <p style="color: #9ca3af; margin-bottom: 20px;">You haven't made any bookings yet. Start your journey today!</p>
-            <a href="{{ route('home') }}#search-section" class="btn btn-primary">
-                <i class="bi bi-search me-2"></i>Search Trips
-            </a>
-        </div>
-    @endif
-</div>
-
-@endsection
             @endforeach
         </div>
     @else

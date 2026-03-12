@@ -14,7 +14,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <link href="{{ asset('css/mobile-app.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/mobile-responsive.css') }}" rel="stylesheet">
     
     <style>
         /* Driver Portal specific overrides */
@@ -142,7 +141,6 @@
     <script src="{{ asset('js/dzongkhag-autocomplete.js') }}"></script>
     <script src="{{ asset('js/realtime-updates.js') }}"></script>
     <script src="{{ asset('js/phone-validation.js') }}"></script>
-    <script src="{{ asset('js/mobile-responsive.js') }}"></script>
     
     <script>
         // Adjust main content margin on mobile
