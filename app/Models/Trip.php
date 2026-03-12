@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class Trip extends Model
 {
@@ -24,6 +25,31 @@ class Trip extends Model
         'price_per_seat' => 'decimal:2',
         'full_taxi_price' => 'decimal:2',
     ];
+
+    protected static function booted(): void
+    {
+        // Clear relevant caches when trip is created/updated/deleted
+        static::created(function ($trip) {
+            static::invalidateCache($trip);
+        });
+
+        static::updated(function ($trip) {
+            static::invalidateCache($trip);
+            // Clear specific trip cache
+            Cache::forget('trip_' . $trip->id);
+        });
+
+        static::deleted(function ($trip) {
+            static::invalidateCache($trip);
+            Cache::forget('trip_' . $trip->id);
+        });
+    }
+
+    public static function invalidateCache($trip): void
+    {
+        // Clear featured trips cache
+        Cache::flush();
+    }
 
     public function driver()
     {

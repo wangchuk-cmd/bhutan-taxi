@@ -1,64 +1,34 @@
 /**
- * Smart Navbar Hide/Show on Scroll
- * Auto-hides navbar when scrolling down, shows when scrolling up
+ * Navbar is now fully CSS-driven for fixed positioning
+ * This file only handles other mobile optimizations
+ *
+ * IMPORTANT: All navbar manipulation has been removed from JavaScript
+ * CSS rules now completely control navbar visibility and positioning
  */
 
+// Force navbar visible on page load and maintain visibility on scroll
 document.addEventListener('DOMContentLoaded', function() {
     const navbar = document.querySelector('.navbar');
-    
-    if (!navbar) return;
-    
-    let lastScrollTop = 0;
-    let isScrollingDown = false;
-    let scrollTimeout;
-    const scrollThreshold = 10; // Minimum scroll distance before triggering hide/show
-    
-    window.addEventListener('scroll', function() {
-        const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+    if (navbar) {
+        // Initial setup - remove any hide classes
+        navbar.classList.remove('navbar-hide');
+        navbar.classList.add('navbar-show');
         
-        // Only apply auto-hide on mobile/tablet (less than 992px)
-        if (window.innerWidth >= 992) {
-            navbar.classList.remove('navbar-hide');
-            navbar.classList.add('navbar-show');
-            return;
-        }
-        
-        const scrollDiff = Math.abs(currentScroll - lastScrollTop);
-        
-        // Check if scroll difference is significant enough
-        if (scrollDiff < scrollThreshold) {
-            return;
-        }
-        
-        // Scrolling down
-        if (currentScroll > lastScrollTop) {
-            if (!isScrollingDown) {
-                navbar.classList.add('navbar-hide');
-                navbar.classList.remove('navbar-show');
-                isScrollingDown = true;
-            }
-        } 
-        // Scrolling up
-        else {
-            if (isScrollingDown) {
+        // Keep navbar always visible on scroll
+        window.addEventListener('scroll', function() {
+            if (navbar) {
                 navbar.classList.remove('navbar-hide');
                 navbar.classList.add('navbar-show');
-                isScrollingDown = false;
+                // Force inline styles as backup
+                navbar.style.setProperty('display', 'flex', 'important');
+                navbar.style.setProperty('visibility', 'visible', 'important');
+                navbar.style.setProperty('opacity', '1', 'important');
+                navbar.style.setProperty('top', '0', 'important');
+                navbar.style.setProperty('transform', 'translateY(0)', 'important');
+                navbar.style.setProperty('position', 'fixed', 'important');
             }
-        }
-        
-        lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
-    }, { passive: true });
-    
-    // Show navbar on top of page
-    window.addEventListener('scroll', function() {
-        const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-        if (currentScroll <= 0) {
-            navbar.classList.remove('navbar-hide');
-            navbar.classList.add('navbar-show');
-            isScrollingDown = false;
-        }
-    }, { passive: true });
+        }, { passive: true });
+    }
 });
 
 /**
@@ -88,25 +58,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * Fix Content Height on Mobile
- * Ensures content doesn't overlap with fixed navbar on scroll
+ * Fix Content Height on Mobile - NO NAVBAR TOUCHING
+ * Only ensures proper spacing for non-navbar elements
  */
 document.addEventListener('DOMContentLoaded', function() {
-    const navbar = document.querySelector('.navbar');
-    const mainContent = document.querySelector('main') || document.querySelector('[role="main"]');
+    const mainContent = document.querySelector('.main-content');
     
-    if (navbar && mainContent) {
-        function updateMargin() {
-            const navbarHeight = navbar.offsetHeight;
-            if (window.innerWidth < 992) {
-                mainContent.style.paddingTop = navbarHeight + 'px';
-            } else {
-                mainContent.style.paddingTop = '0';
-            }
-        }
-        
-        updateMargin();
-        window.addEventListener('resize', updateMargin, { passive: true });
+    if (mainContent) {
+        mainContent.style.paddingTop = '20px'; /* extra breathing room, not dependent on navbar */
     }
 });
 

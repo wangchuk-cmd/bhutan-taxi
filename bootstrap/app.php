@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'driver' => \App\Http\Middleware\DriverMiddleware::class,
         ]);
+        
+        // Add cache control middleware globally
+        $middleware->append(\App\Http\Middleware\CacheControl::class);
     })
     ->withSchedule(function (Schedule $schedule) {
         // Send departure reminders every 10 minutes to catch trips departing in 1 hour

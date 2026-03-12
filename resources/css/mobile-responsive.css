@@ -11,19 +11,104 @@
     --gray-500: #6b7280;
 }
 
-/* ==================== NAVBAR WITH AUTO-HIDE ON SCROLL ==================== */
+/* ==================== NAVBAR FIXED TO TOP - ABSOLUTE RULES ==================== */
+/* Navbar is permanently fixed and NEVER scrolls on any device or page */
+
 .navbar {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    z-index: 1030;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 1030 !important;
+    transform: translateY(0) !important;
+    transition: none !important;
+    visibility: visible !important;
+    display: flex !important;
+    opacity: 1 !important;
+    height: auto !important;
+    min-height: 56px !important;
 }
 
+/* enforce no hiding via any class */
 .navbar.navbar-hide {
-    transform: translateY(-100%);
+    transform: translateY(0) !important;
+    position: fixed !important;
+    top: 0 !important;
 }
 
 .navbar.navbar-show {
-    transform: translateY(0);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(0) !important;
+    position: fixed !important;
+    top: 0 !important;
+}
+
+/* ensure entire body has padding to prevent content overlap */
+html {
+    padding-top: 56px !important;
+}
+
+body {
+    padding-top: 56px !important;
+    margin-top: 0 !important;
+}
+
+/* all main content containers respect the fixed navbar */
+main, [role="main"], .main-content, .container-fluid, .container {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* on large screens with sidebar */
+@media (min-width: 992px) {
+    .main-content {
+        margin-left: 220px !important;
+    }
+}
+
+/* on mobile ensure navbar stays on top of everything */
+@media (max-width: 991px) {
+    .navbar {
+        position: fixed !important;
+        top: 0 !important;
+        width: 100vw !important;
+        max-width: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 1030 !important;
+    }
+    
+    /* admin pages - ensure page content scrolls below navbar */
+    body {
+        padding-top: 56px !important;
+    }
+    
+    /* allow scrolling within content only */
+    .d-flex {
+        display: flex !important;
+    }
+    
+    /* main content area */
+    main, [role="main"] {
+        margin-top: 0 !important;
+        padding-top: 20px !important;
+        overflow-y: auto !important;
+    }
+    
+    /* admin sidebar should not appear on mobile */
+    .sidebar {
+        display: none !important;
+    }
+    
+    /* ensure cards and content scroll properly */
+    .card {
+        margin-top: 0 !important;
+    }
+    
+    /* table responsive areas */
+    .table-responsive {
+        overflow-y: auto !important;
+    }
 }
 
 /* ==================== BOOKING CARDS - MOBILE OPTIMIZED ==================== */
