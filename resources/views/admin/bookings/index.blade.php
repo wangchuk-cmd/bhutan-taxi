@@ -32,7 +32,7 @@
                         @foreach($bookings as $booking)
                             <tr>
                                 <td><strong>#{{ $booking->id }}</strong></td>
-                                <td>{{ $booking->passenger->name ?? 'N/A' }}</td>
+                                <td>{{ $booking->passenger->name ?? 'N/A' }}<br><span style="font-size: 11px; color: #6c757d;">Booker</span></td>
                                 <td>{{ $booking->trip->origin_dzongkhag }} <i class="bi bi-arrow-right small"></i> {{ $booking->trip->destination_dzongkhag }}</td>
                                 <td>{{ $booking->trip->departure_datetime->format('M d') }}</td>
                                 <td>{{ $booking->seats_booked }}</td>

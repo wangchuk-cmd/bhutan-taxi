@@ -191,7 +191,8 @@
                                 @foreach($recentBookings->take(5) as $booking)
                                     <tr>
                                         <td>
-                                            <strong>{{ $booking->passenger->name }}</strong>
+                                            <strong>{{ $booking->passenger->name ?? 'N/A' }}</strong>
+                                            <div style="font-size: 12px; color: #6c757d;">Booker</div>
                                         </td>
                                         <td style="font-size: 13px;">
                                             {{ substr($booking->trip->origin_dzongkhag, 0, 10) }} <i class="bi bi-arrow-right"></i> {{ substr($booking->trip->destination_dzongkhag, 0, 10) }}

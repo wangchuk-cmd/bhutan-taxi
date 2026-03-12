@@ -38,34 +38,34 @@
         </div>
 
         <div class="card">
-            <div class="card-header"><h6 class="mb-0">Passenger</h6></div>
+            <div class="card-header"><h6 class="mb-0">Booking Details</h6></div>
             <div class="card-body">
+                <!-- BOOKER SECTION -->
+                <div style="background-color: #e7f3ff; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #0d6efd;">
+                    <h6 style="color: #0d6efd; margin-top: 0; margin-bottom: 10px;">📝 BOOKER (Account Holder)</h6>
                     @if($booking->passenger)
                         <p class="mb-2"><strong>{{ $booking->passenger->name }}</strong></p>
                         <p class="mb-2"><i class="bi bi-envelope me-2"></i>{{ $booking->passenger->email }}</p>
                         <p class="mb-0"><i class="bi bi-telephone me-2"></i>{{ $booking->passenger->phone_number }}</p>
                     @else
-                        <p class="mb-2 text-danger"><strong>Passenger information unavailable</strong></p>
+                        <p class="mb-0 text-danger"><strong>Booker information unavailable</strong></p>
                     @endif
-                    @if($booking->user && $booking->passenger && $booking->user->id !== $booking->passenger->id)
-                        <hr>
-                        <p class="mb-2"><strong>Booked By:</strong> {{ $booking->user->name }}</p>
-                        <p class="mb-2"><i class="bi bi-envelope me-2"></i>{{ $booking->user->email }}</p>
-                        <p class="mb-0"><i class="bi bi-telephone me-2"></i>{{ $booking->user->phone_number }}</p>
-                    @endif
-                    @if(is_array($booking->passengers_info) && count($booking->passengers_info) > 0)
-                        <hr>
-                        <h6 class="mb-2">Passenger List</h6>
-                        <ul class="list-group mb-2">
-                            @foreach($booking->passengers_info as $p)
-                                <li class="list-group-item">
-                                    <strong>{{ $p['name'] ?? 'N/A' }}</strong><br>
-                                    @if(isset($p['email']))<i class="bi bi-envelope me-2"></i>{{ $p['email'] }}<br>@endif
-                                    <span class="d-block"><i class="bi bi-telephone me-2"></i>Contact: {{ $p['phone_number'] ?? 'N/A' }}</span>
-                                </li>
-                            @endforeach
-                        </ul>
-                    @endif
+                </div>
+                
+                <!-- PASSENGERS SECTION -->
+                @if(is_array($booking->passengers_info) && count($booking->passengers_info) > 0)
+                <div style="background-color: #f0f9ff; padding: 15px; border-radius: 5px; border-left: 4px solid #198754;">
+                    <h6 style="color: #198754; margin-top: 0; margin-bottom: 10px;">👥 PASSENGERS ({{ count($booking->passengers_info) }})</h6>
+                    <ul class="list-group">
+                        @foreach($booking->passengers_info as $index => $p)
+                            <li class="list-group-item">
+                                <strong>{{ $index + 1 }}. {{ $p['name'] ?? 'N/A' }}</strong><br>
+                                <span class="d-block"><i class="bi bi-telephone me-2"></i>{{ $p['phone'] ?? 'N/A' }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
             </div>
         </div>
     </div>

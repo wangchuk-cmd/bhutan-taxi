@@ -71,7 +71,7 @@
     </div>
     
     <div class="content">
-        <p>Dear {{ $booking->passenger->name ?? 'Passenger' }},</p>
+        <p>Dear {{ $booking->passenger->name ?? 'Booker' }},</p>
         
         <p>Your taxi booking has been successfully confirmed. Please find your booking details below:</p>
         
@@ -113,6 +113,19 @@
                 <span class="value">{{ ucfirst($booking->payment_status) }}</span>
             </div>
         </div>
+        
+        <!-- PASSENGERS SECTION -->
+        @if(is_array($booking->passengers_info) && count($booking->passengers_info) > 0)
+        <div class="booking-details" style="background-color: #f0f9ff; border-left: 4px solid #198754;">
+            <h3 style="margin-top: 0; color: #198754;">Passengers ({{ count($booking->passengers_info) }})</h3>
+            @foreach($booking->passengers_info as $index => $p)
+            <div style="padding: 10px 0; border-bottom: 1px solid #dee2e6;">
+                <div style="font-weight: bold;">{{ $index + 1 }}. {{ $p['name'] ?? 'N/A' }}</div>
+                <div style="color: #6c757d; font-size: 14px;">📞 {{ $p['phone'] ?? 'N/A' }}</div>
+            </div>
+            @endforeach
+        </div>
+        @endif
         
         <div class="booking-details">
             <h3 style="margin-top: 0; color: #0d6efd;">Driver Information</h3>

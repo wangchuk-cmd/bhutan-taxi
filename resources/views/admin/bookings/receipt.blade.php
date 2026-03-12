@@ -81,30 +81,37 @@
                         <div class="col-6">
                             <div class="border rounded p-2 h-100">
                                 <h6 class="border-bottom pb-1 mb-2" style="font-size: 14px;">
-                                    <i class="bi bi-person me-1"></i>Passenger Details
+                                    <i class="bi bi-people me-1"></i>Passengers ({{ count($booking->passengers_info ?? []) }})
                                 </h6>
-                                <table class="table table-sm table-borderless mb-0" style="font-size: 12px;">
-                                    @php
-                                        $passenger = $booking->passengers_info[0] ?? [];
-                                    @endphp
+                                <table class="table table-sm table-borderless mb-0" style="font-size: 11px;">
+                                    @forelse($booking->passengers_info ?? [] as $index => $passenger)
+                                        <tr>
+                                            <td class="text-muted py-1" style="width: 30%;">Passenger {{ $index + 1 }}:</td>
+                                            <td class="fw-bold py-1">{{ $passenger['name'] ?? 'N/A' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted py-1" style="font-size: 10px;">Phone:</td>
+                                            <td class="fw-bold py-1" style="font-size: 10px;">{{ $passenger['phone'] ?? 'N/A' }}</td>
+                                        </tr>
+                                        @if(!$loop->last)
+                                        <tr>
+                                            <td colspan="2" class="py-0"><hr class="my-1" style="border-top: 1px solid #e9ecef;"></td>
+                                        </tr>
+                                        @endif
+                                    @empty
+                                        <tr>
+                                            <td class="text-muted py-0">No passenger info</td>
+                                        </tr>
+                                    @endforelse
                                     <tr>
-                                        <td class="text-muted py-0" style="width: 35%;">Name:</td>
-                                        <td class="fw-bold py-0">{{ $passenger['name'] ?? 'N/A' }}</td>
+                                        <td colspan="2" class="py-1"><hr class="my-1" style="border-top: 2px dashed #dee2e6;"></td>
                                     </tr>
                                     <tr>
-                                        <td class="text-muted py-0">Phone:</td>
-                                        <td class="fw-bold py-0">{{ $passenger['phone'] ?? 'N/A' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-muted py-0">CID:</td>
-                                        <td class="fw-bold py-0">{{ $passenger['cid'] ?? 'N/A' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-muted py-0">Booking:</td>
+                                        <td class="text-muted py-0">Booking Type:</td>
                                         <td class="fw-bold py-0 text-capitalize">{{ $booking->booking_type }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="text-muted py-0">Seats:</td>
+                                        <td class="text-muted py-0">Total Seats:</td>
                                         <td class="fw-bold py-0">{{ $booking->seats_booked }}</td>
                                     </tr>
                                     <tr>

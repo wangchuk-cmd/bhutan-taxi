@@ -91,12 +91,12 @@
                                 <div id="passengersContainer">
                                     <!-- Passenger 1 (default) -->
                                     <div class="passenger-entry border rounded p-3 mb-3" data-passenger="1">
-                                        <h6 class="text-primary mb-3"><i class="bi bi-person me-1"></i>Passenger 1 (Booker)</h6>
+                                        <h6 class="text-primary mb-3"><i class="bi bi-person me-1"></i>Passenger 1</h6>
                                         <div class="row g-3">
                                             <div class="col-md-6">
                                                 <label class="form-label">Name <span class="text-danger">*</span></label>
                                                 <input type="text" class="form-control" name="passengers[0][name]" 
-                                                       value="{{ old('passengers.0.name', auth()->user()->name) }}" required>
+                                                       value="{{ old('passengers.0.name') }}" placeholder="Enter passenger name" required>
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label">Phone Number <span class="text-danger">*</span></label>
@@ -334,9 +334,9 @@
         const firstEntry = container.querySelector('.passenger-entry:first-child h6');
         if (firstEntry) {
             if (isFullTaxi) {
-                firstEntry.innerHTML = '<i class="bi bi-person me-1"></i>Contact Person (Full Taxi Booking)';
+                firstEntry.innerHTML = '<i class="bi bi-person me-1"></i>Passenger 1';
             } else {
-                firstEntry.innerHTML = '<i class="bi bi-person me-1"></i>Passenger 1 (Booker)';
+                firstEntry.innerHTML = '<i class="bi bi-person me-1"></i>Passenger 1';
             }
         }
         

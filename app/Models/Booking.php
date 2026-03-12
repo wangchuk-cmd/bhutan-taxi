@@ -42,6 +42,28 @@ class Booking extends Model
         return $this->hasOne(Payment::class);
     }
 
+    /**
+     * Get the primary passenger name from passengers_info
+     */
+    public function getPrimaryPassengerName()
+    {
+        if (is_array($this->passengers_info) && isset($this->passengers_info[0]['name'])) {
+            return $this->passengers_info[0]['name'];
+        }
+        return $this->passenger->name ?? 'N/A';
+    }
+
+    /**
+     * Get the primary passenger phone from passengers_info
+     */
+    public function getPrimaryPassengerPhone()
+    {
+        if (is_array($this->passengers_info) && isset($this->passengers_info[0]['phone'])) {
+            return $this->passengers_info[0]['phone'];
+        }
+        return $this->passenger->phone_number ?? 'N/A';
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

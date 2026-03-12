@@ -121,29 +121,35 @@
         </div>
         
         <div class="booking-details">
-            <h3 style="margin-top: 0; color: #198754;">Passenger Information</h3>
+            <h3 style="margin-top: 0; color: #198754;">Booking Information</h3>
             
-            <div class="detail-row">
-                <span class="label">Name:</span>
-                <span class="value">{{ $booking->passenger->name ?? 'N/A' }}</span>
+            <!-- BOOKER SECTION -->
+            <div style="background-color: #e7f3ff; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #0d6efd;">
+                <div style="font-size: 12px; color: #0d6efd; font-weight: bold; margin-bottom: 10px;">📝 BOOKER</div>
+                <div class="detail-row">
+                    <span class="label">Name:</span>
+                    <span class="value">{{ $booking->passenger->name ?? 'N/A' }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Phone:</span>
+                    <span class="value">{{ $booking->passenger->phone_number ?? 'N/A' }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Email:</span>
+                    <span class="value">{{ $booking->passenger->email ?? 'N/A' }}</span>
+                </div>
             </div>
             
-            <div class="detail-row">
-                <span class="label">Phone:</span>
-                <span class="value">{{ $booking->passenger->phone_number ?? 'N/A' }}</span>
-            </div>
-            
-            <div class="detail-row">
-                <span class="label">Email:</span>
-                <span class="value">{{ $booking->passenger->email ?? 'N/A' }}</span>
-            </div>
-            
+            <!-- PASSENGERS SECTION -->
             @if(is_array($booking->passengers_info) && count($booking->passengers_info) > 0)
-            <div style="margin-top: 15px;">
-                <strong>Additional Passengers:</strong>
-                <ul style="margin: 10px 0;">
-                    @foreach($booking->passengers_info as $p)
-                    <li>{{ $p['name'] ?? 'N/A' }} - {{ $p['phone_number'] ?? 'N/A' }}</li>
+            <div style="background-color: #f0f9ff; padding: 15px; border-radius: 5px; border-left: 4px solid #198754;">
+                <div style="font-size: 12px; color: #198754; font-weight: bold; margin-bottom: 10px;">👥 PASSENGERS ({{ count($booking->passengers_info) }})</div>
+                <ul style="margin: 0; padding-left: 20px;">
+                    @foreach($booking->passengers_info as $index => $p)
+                    <li style="margin-bottom: 8px;">
+                        <strong>{{ $p['name'] ?? 'N/A' }}</strong><br>
+                        <span style="color: #6c757d; font-size: 12px;">📞 {{ $p['phone'] ?? 'N/A' }}</span>
+                    </li>
                     @endforeach
                 </ul>
             </div>

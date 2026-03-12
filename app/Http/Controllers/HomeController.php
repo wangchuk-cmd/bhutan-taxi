@@ -16,7 +16,7 @@ class HomeController extends Controller
         $featuredTrips = Cache::remember($cacheKey, 600, function () {
             return Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
                                'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
-                ->with(['driver:id,user_id', 'driver.user:id,name,profile_picture', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_duration'])
+                ->with(['driver:id,user_id', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
                 ->active()
                 ->upcoming()
                 ->where('available_seats', '>', 0)
@@ -49,7 +49,7 @@ class HomeController extends Controller
         $trips = Cache::remember($cacheKey, 300, function () use ($from, $to, $date) {
             return Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
                                'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
-                ->with(['driver:id,user_id', 'driver.user:id,name,profile_picture', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_duration'])
+                ->with(['driver:id,user_id', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
                 ->whereRaw('LOWER(TRIM(origin_dzongkhag)) = ?', [strtolower($from)])
                 ->whereRaw('LOWER(TRIM(destination_dzongkhag)) = ?', [strtolower($to)])
                 ->active()
@@ -61,7 +61,7 @@ class HomeController extends Controller
 
         // Get route info if available for distance/time
         $route = Cache::remember('route_' . md5($from . $to), 86400, function () use ($from, $to) {
-            return Route::select(['id', 'origin_dzongkhag', 'destination_dzongkhag', 'distance_km', 'estimated_duration'])
+            return Route::select(['id', 'origin_dzongkhag', 'destination_dzongkhag', 'distance_km', 'estimated_time'])
                 ->whereRaw('LOWER(TRIM(origin_dzongkhag)) = ?', [strtolower($from)])
                 ->whereRaw('LOWER(TRIM(destination_dzongkhag)) = ?', [strtolower($to)])
                 ->first();
@@ -80,7 +80,7 @@ class HomeController extends Controller
         $trip = Cache::remember('trip_' . $id, 600, function () use ($id) {
             return Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
                                'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
-                ->with(['driver:id,user_id', 'driver.user:id,name,profile_picture', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_duration', 'bookings:id,trip_id,passenger_id'])
+                ->with(['driver:id,user_id', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time', 'bookings:id,trip_id,passenger_id'])
                 ->findOrFail($id);
         });
 
@@ -107,7 +107,7 @@ class HomeController extends Controller
         $trips = Cache::remember($cacheKey, 180, function () use ($from, $to, $date) {
             return Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
                                'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
-                ->with(['driver:id,user_id', 'driver.user:id,name,profile_picture', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_duration'])
+                ->with(['driver:id,user_id', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
                 ->whereRaw('LOWER(TRIM(origin_dzongkhag)) = ?', [strtolower($from)])
                 ->whereRaw('LOWER(TRIM(destination_dzongkhag)) = ?', [strtolower($to)])
                 ->active()

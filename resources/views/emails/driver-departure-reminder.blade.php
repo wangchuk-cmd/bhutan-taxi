@@ -232,10 +232,10 @@
             </div>
             @endif
             
-            @if($trip->route && $trip->route->estimated_duration)
+            @if($trip->route && $trip->route->estimated_time)
             <div class="detail-row">
                 <span class="label">Est. Duration:</span>
-                <span class="value">{{ $trip->route->estimated_duration }}</span>
+                <span class="value">{{ $trip->route->estimated_time }}</span>
             </div>
             @endif
         </div>
@@ -246,30 +246,39 @@
         
         @if($confirmedBookings->count() > 0)
         <div class="passenger-list">
-            <h4 style="margin-top: 0; color: #dc3545;">👥 Confirmed Passengers ({{ $confirmedBookings->count() }})</h4>
+            <h4 style="margin-top: 0; color: #dc3545;">👥 Confirmed Bookings ({{ $confirmedBookings->count() }})</h4>
             
             @foreach($confirmedBookings as $booking)
             <div class="passenger-item">
-                <div class="passenger-name">
-                    {{ $booking->passenger->name ?? 'N/A' }}
-                    @if($booking->booking_type === 'full')
-                    <span style="background-color: #ffc107; color: #000; padding: 2px 8px; border-radius: 3px; font-size: 11px; margin-left: 8px;">FULL TAXI</span>
-                    @endif
+                <!-- BOOKER INFO -->
+                <div style="background-color: #e7f3ff; padding: 10px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid #0d6efd;">
+                    <div style="font-size: 12px; color: #0d6efd; font-weight: bold; margin-bottom: 5px;">📝 BOOKER</div>
+                    <div class="passenger-name" style="color: #0d6efd;">
+                        {{ $booking->passenger->name ?? 'N/A' }}
+                        @if($booking->booking_type === 'full')
+                        <span style="background-color: #ffc107; color: #000; padding: 2px 8px; border-radius: 3px; font-size: 11px; margin-left: 8px;">FULL TAXI</span>
+                        @endif
+                    </div>
+                    <div class="passenger-contact">
+                        📞 {{ $booking->passenger->phone_number ?? 'N/A' }} 
+                        @if($booking->passenger->email)
+                        | ✉️ {{ $booking->passenger->email }}
+                        @endif
+                    </div>
+                    <div class="passenger-contact">
+                        🎫 Booking #{{ $booking->id }} | {{ $booking->seats_booked }} seat(s)
+                    </div>
                 </div>
-                <div class="passenger-contact">
-                    📞 {{ $booking->passenger->phone_number ?? 'N/A' }} 
-                    @if($booking->passenger->email)
-                    | ✉️ {{ $booking->passenger->email }}
-                    @endif
-                </div>
-                <div class="passenger-contact">
-                    🎫 Booking #{{ $booking->id }} | {{ $booking->seats_booked }} seat(s)
-                </div>
-                @if(is_array($booking->passengers_info) && count($booking->passengers_info) > 1)
-                <div class="passenger-contact" style="margin-top: 8px; padding-left: 10px; border-left: 3px solid #dee2e6;">
-                    <strong>Additional passengers ({{ count($booking->passengers_info) }}):</strong><br>
+                
+                <!-- PASSENGERS LIST -->
+                @if(is_array($booking->passengers_info) && count($booking->passengers_info) > 0)
+                <div style="background-color: #f0f9ff; padding: 10px; border-radius: 5px; border-left: 4px solid #198754;">
+                    <div style="font-size: 12px; color: #198754; font-weight: bold; margin-bottom: 8px;">👥 PASSENGERS ({{ count($booking->passengers_info) }})</div>
                     @foreach($booking->passengers_info as $index => $p)
-                        {{ $index + 1 }}. {{ $p['name'] ?? 'N/A' }} - {{ $p['phone_number'] ?? 'N/A' }}<br>
+                    <div style="padding: 5px 0; border-bottom: 1px solid #dee2e6;">
+                        <strong>{{ $index + 1 }}. {{ $p['name'] ?? 'N/A' }}</strong><br>
+                        <span style="color: #6c757d; font-size: 12px;">📞 {{ $p['phone'] ?? 'N/A' }}</span>
+                    </div>
                     @endforeach
                 </div>
                 @endif
