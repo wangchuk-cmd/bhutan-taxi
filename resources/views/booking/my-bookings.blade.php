@@ -3,78 +3,83 @@
 @section('title', 'My Bookings')
 
 @section('content')
-<div class="container py-4">
+<div class="container py-3">
     <h2 class="mb-4"><i class="bi bi-ticket-perforated me-2"></i>My Bookings</h2>
 
     @if($bookings->count() > 0)
-        <div class="row g-2 g-sm-3">
+        <div class="row g-2">
             @foreach($bookings as $booking)
-                <div class="col-6 col-lg-6">
-                    <div class="card h-100 {{ $booking->status === 'cancelled' ? 'border-start border-danger border-3' : 'border-start border-primary border-2' }}">
-                        <div class="card-body p-3">
-
-                            {{-- Route + Status --}}
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="route-title mb-0 me-2 flex-grow-1">
-                                    {{ $booking->trip->origin_dzongkhag }}
-                                    <i class="bi bi-arrow-right text-primary"></i>
-                                    {{ $booking->trip->destination_dzongkhag }}
-                                </h5>
+                <div class="col-12 col-md-6">
+                    <div class="booking-card {{ $booking->status === 'cancelled' ? 'booking-card-cancelled' : 'booking-card-active' }}">
+                        <div class="booking-card-header">
+                            <div class="booking-route">
+                                <span class="booking-location">{{ $booking->trip->origin_dzongkhag }}</span>
+                                <i class="bi bi-arrow-right"></i>
+                                <span class="booking-location">{{ $booking->trip->destination_dzongkhag }}</span>
+                            </div>
+                            <div class="booking-status">
                                 @if($booking->status === 'active')
                                     @if($booking->payment_status === 'paid')
-                                        <span class="badge bg-success flex-shrink-0">Confirmed</span>
+                                        <span class="badge bg-success">Confirmed</span>
                                     @else
-                                        <span class="badge bg-warning text-dark flex-shrink-0">Pending</span>
+                                        <span class="badge bg-warning text-dark">Pending</span>
                                     @endif
                                 @else
-                                    <span class="badge bg-danger flex-shrink-0">Cancelled</span>
+                                    <span class="badge bg-danger">Cancelled</span>
                                 @endif
                             </div>
+                        </div>
 
-                            {{-- Info Grid --}}
-                            <div class="booking-info-grid mb-3">
-                                <div class="booking-info-item">
+                        <div class="booking-card-body">
+                            <div class="booking-meta-row">
+                                <div class="booking-meta">
                                     <small>Date</small>
-                                    <span class="info-value">{{ $booking->trip->departure_datetime->format('M d, Y') }}</span>
+                                    <span>{{ $booking->trip->departure_datetime->format('M d, Y') }}</span>
                                 </div>
-                                <div class="booking-info-item">
+                                <div class="booking-meta">
                                     <small>Time</small>
-                                    <span class="info-value">{{ $booking->trip->departure_datetime->format('h:i A') }}</span>
+                                    <span>{{ $booking->trip->departure_datetime->format('h:i A') }}</span>
                                 </div>
-                                <div class="booking-info-item">
+                                <div class="booking-meta">
                                     <small>Seats</small>
-                                    <span class="info-value">{{ $booking->seats_booked }} ({{ ucfirst($booking->booking_type) }})</span>
-                                </div>
-                                <div class="booking-info-item">
-                                    <small>Driver</small>
-                                    <span class="info-value">{{ $booking->trip->driver->user->name }}</span>
+                                    <span>{{ $booking->seats_booked }}</span>
                                 </div>
                             </div>
 
-                            {{-- Amount + Actions --}}
-                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                                <div>
-                                    <span class="fw-bold text-success fs-5">Nu. {{ number_format($booking->total_amount, 2) }}</span>
+                            <div class="booking-footer">
+                                <div class="booking-price">
+                                    <span class="fw-bold text-success">Nu. {{ number_format($booking->total_amount, 2) }}</span>
                                     @if($booking->refund_status === 'refunded')
-                                        <span class="badge bg-info ms-1">Refunded</span>
+                                        <span class="badge bg-info ms-2">Refunded</span>
                                     @endif
                                 </div>
-                                <div class="d-flex gap-2">
-                                    <a href="{{ route('bookings.show', $booking->id) }}" class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-eye me-1"></i>View
+                                <div class="booking-actions">
+                                    <a href="{{ route('bookings.show', $booking->id) }}" class="btn-action btn-view" title="View Details">
+                                        <i class="bi bi-eye"></i>
                                     </a>
                                     @if($booking->canCancel())
-                                        <form action="{{ route('booking.cancel', $booking->id) }}" method="POST"
-                                              onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                                        <form action="{{ route('booking.cancel', $booking->id) }}" method="POST" class="d-inline"
+                                              onsubmit="return confirm('Cancel this booking?');">
                                             @csrf
-                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <button type="submit" class="btn-action btn-cancel" title="Cancel Booking">
                                                 <i class="bi bi-x-circle"></i>
                                             </button>
                                         </form>
+                                    @else
+                                        @php
+                                            $rideCompleted = now()->isAfter($booking->trip->departure_datetime);
+                                            $hoursAfterTrip = now()->diffInHours($booking->trip->departure_datetime, false);
+                                            $autoDeleteIn = max(0, 12 - $hoursAfterTrip);
+                                        @endphp
+                                        @if($rideCompleted && $hoursAfterTrip <= 12)
+                                            <span class="booking-timer" title="Auto-delete in {{ $autoDeleteIn }} hours">
+                                                <i class="bi bi-clock-history"></i>
+                                                {{ $autoDeleteIn }}h
+                                            </span>
+                                        @endif
                                     @endif
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>

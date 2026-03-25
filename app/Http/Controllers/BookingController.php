@@ -68,8 +68,19 @@ class BookingController extends Controller
 
     public function myBookings()
     {
+        // Get bookings but exclude those completed more than 12 hours ago
+        $twelveHoursAgo = now()->subHours(12);
+        
         $bookings = Booking::with(['trip.route', 'trip.driver.user', 'payment'])
             ->where('passenger_id', Auth::id())
+            ->where(function ($query) use ($twelveHoursAgo) {
+                // Show bookings that are either:
+                // 1. Not completed yet (departure_datetime is in future)
+                // 2. Completed but within 12 hours
+                $query->whereHas('trip', function ($subQuery) use ($twelveHoursAgo) {
+                    $subQuery->where('departure_datetime', '>', $twelveHoursAgo);
+                });
+            })
             ->orderBy('created_at', 'desc')
             ->get();
 

@@ -47,10 +47,45 @@
                 </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-bold">Departure Date & Time</label>
-                <input type="datetime-local" name="departure_datetime" class="form-control" 
-                       value="{{ old('departure_datetime') }}" min="{{ now()->format('Y-m-d\TH:i') }}" required>
+            <div class="mb-4">
+                <label class="form-label fw-bold mb-3">Departure Date & Time</label>
+                <div class="datetime-picker-wrapper">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="datetime-card">
+                                <div class="datetime-card-icon">
+                                    <i class="bi bi-calendar3"></i>
+                                </div>
+                                <div class="datetime-card-content">
+                                    <label class="datetime-label">Departure Date</label>
+                                    <input type="date" name="departure_date" id="departure-date" class="datetime-input" 
+                                           value="{{ old('departure_date', now()->format('Y-m-d')) }}" required>
+                                    <span class="datetime-preview" id="date-preview"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="datetime-card">
+                                <div class="datetime-card-icon">
+                                    <i class="bi bi-clock"></i>
+                                </div>
+                                <div class="datetime-card-content">
+                                    <label class="datetime-label">Departure Time</label>
+                                    <input type="time" name="departure_time" id="departure-time" class="datetime-input" 
+                                           value="{{ old('departure_time', '08:00') }}" required>
+                                    <span class="datetime-preview" id="time-preview"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="datetime-confirm-section">
+                        <div class="datetime-summary">
+                            <span class="summary-label">Selected:</span>
+                            <span class="summary-value" id="datetime-summary">Today, 08:00</span>
+                        </div>
+                        <input type="hidden" name="departure_datetime" id="departure-datetime-hidden" required>
+                    </div>
+                </div>
             </div>
 
             <div class="row">
@@ -91,6 +126,92 @@
         const totalSeats = document.querySelector('input[name="total_seats"]');
         const pricePerSeat = document.querySelector('input[name="price_per_seat"]');
         const fullTaxiPrice = document.getElementById('fullTaxiPrice');
+        const departureDate = document.getElementById('departure-date');
+        const departureTime = document.getElementById('departure-time');
+        const departureDatetimeHidden = document.getElementById('departure-datetime-hidden');
+        const datetimeSummary = document.getElementById('datetime-summary');
+        
+        // Get today's date and current time
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        const currentHour = today.getHours();
+        const currentMinute = today.getMinutes();
+        
+        // Set minimum date to today
+        departureDate.setAttribute('min', todayStr);
+        
+        // Format date display
+        function formatDateDisplay(dateStr) {
+            const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+            return new Date(dateStr + 'T00:00').toLocaleDateString('en-US', options);
+        }
+        
+        // Check if a date is today
+        function isToday(dateStr) {
+            return dateStr === todayStr;
+        }
+        
+        // Update time input constraints based on selected date
+        function updateTimeConstraints() {
+            const selectedDate = departureDate.value;
+            
+            if (!selectedDate) {
+                departureTime.setAttribute('disabled', 'disabled');
+                return;
+            }
+            
+            departureTime.removeAttribute('disabled');
+            
+            // If today is selected, set minimum time to current time
+            if (isToday(selectedDate)) {
+                const minTimeDate = new Date(today);
+                const minTime = `${String(minTimeDate.getHours()).padStart(2, '0')}:${String(minTimeDate.getMinutes()).padStart(2, '0')}`;
+                departureTime.setAttribute('min', minTime);
+                
+                // Show label for today's date
+                const timeLabel = departureTime.parentElement.querySelector('.datetime-label');
+                if (timeLabel) {
+                    timeLabel.textContent = `Departure Time (From ${minTime})`;
+                }
+            } else {
+                // For future dates, allow all times
+                departureTime.removeAttribute('min');
+                const timeLabel = departureTime.parentElement.querySelector('.datetime-label');
+                if (timeLabel) {
+                    timeLabel.textContent = 'Departure Time';
+                }
+            }
+            
+            // Clear time if it's no longer valid
+            if (departureTime.value && departureTime.getAttribute('min')) {
+                if (departureTime.value < departureTime.getAttribute('min')) {
+                    departureTime.value = '';
+                }
+            }
+        }
+        
+        // Update datetime hidden field and summary
+        function updateDatetime() {
+            if (departureDate.value && departureTime.value) {
+                const datetime = `${departureDate.value}T${departureTime.value}`;
+                departureDatetimeHidden.value = datetime;
+                
+                const dateDisplay = formatDateDisplay(departureDate.value);
+                const timeDisplay = departureTime.value;
+                datetimeSummary.textContent = `${dateDisplay}, ${timeDisplay}`;
+            }
+        }
+        
+        departureDate.addEventListener('change', function() {
+            updateTimeConstraints();
+            updateDatetime();
+        });
+        
+        departureTime.addEventListener('change', updateDatetime);
+        
+        // Initialize on load
+        updateTimeConstraints();
+        updateDatetime();
         
         function calculateFullTaxiPrice() {
             const seats = parseFloat(totalSeats.value) || 0;
@@ -101,7 +222,6 @@
         totalSeats.addEventListener('input', calculateFullTaxiPrice);
         pricePerSeat.addEventListener('input', calculateFullTaxiPrice);
         
-        // Calculate on load if values exist
         if (totalSeats.value && pricePerSeat.value && !fullTaxiPrice.value) {
             calculateFullTaxiPrice();
         }

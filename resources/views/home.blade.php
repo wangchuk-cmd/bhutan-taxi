@@ -18,15 +18,15 @@
                 <div class="hero-live-badge mb-3">
                     <span class="live-dot-ring"></span>
                     <span class="live-dot"></span>
-                    Operational in all 20 Dzongkhags
+                    Operational in all 20 Dzongkhags, Bhutan
                 </div>
 
-                <h1 class="hf-title">
+                <h1 class="hf-title d-none d-md-block">
                     The Smartest Way<br>
                     to Book Taxis
                 </h1>
 
-                <p class="hf-sub mb-4">
+                <p class="hf-sub mb-4 d-none d-md-block">
                     Instantly book shared or private intercity taxis.
                     Fast, secure, and reliable travel across Bhutan.
                 </p>
@@ -326,6 +326,22 @@
 
 @push('scripts')
 <script>
+// Smooth scroll to search section with proper offset
+document.querySelectorAll('a[href="#search-section"]').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const searchSection = document.getElementById('search-section');
+        if (searchSection) {
+            const offset = window.innerWidth < 768 ? 80 : 40;
+            const topPosition = searchSection.offsetTop - offset;
+            window.scrollTo({
+                top: topPosition,
+                behavior: 'smooth'
+            });
+        }
+    });
+});
+
 document.getElementById('swapBtn')?.addEventListener('click', function () {
     const from = document.getElementById('search-from');
     const to   = document.getElementById('search-to');
