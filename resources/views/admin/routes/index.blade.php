@@ -3,6 +3,7 @@
 @section('title', 'Manage Routes')
 
 @section('content')
+@include('components.confirm-modal')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0"><i class="bi bi-signpost-2 me-2"></i>Routes Management</h4>
     <a href="{{ route('admin.routes.create') }}" class="btn btn-primary">
@@ -49,11 +50,11 @@
                                 <td class="d-flex gap-1">
                                     @if($route)
                                         <a href="{{ route('admin.routes.edit', $route->id) }}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
-                                        <form action="{{ route('admin.routes.delete', $route->id) }}" method="POST" class="d-inline">
+                                        <form id="deleteRouteForm-{{ $route->id }}" action="{{ route('admin.routes.delete', $route->id) }}" method="POST" class="d-inline">
                                             @csrf @method('DELETE')
-                                            <button class="btn btn-sm btn-outline-danger"
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
                                                 title="{{ $route->trips_count > 0 ? 'Cannot delete: has trips' : 'Delete' }}"
-                                                @if($route->trips_count > 0) disabled @else onclick="return confirm('Delete this route?')" @endif>
+                                                @if($route->trips_count > 0) disabled @else onclick="showConfirmModal('Delete this route?', 'Delete Route', function() { document.getElementById('deleteRouteForm-{{ $route->id }}').submit(); })" @endif>
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>

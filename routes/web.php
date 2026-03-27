@@ -100,6 +100,7 @@ Route::prefix('admin')->middleware('guest')->group(function () {
 
 Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/financial-details', [AdminController::class, 'financialDetails'])->name('admin.financial.details');
     
     // Routes Management
     Route::get('/routes', [AdminController::class, 'routes'])->name('admin.routes');

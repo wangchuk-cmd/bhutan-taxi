@@ -38,7 +38,7 @@
             <div class="card-header d-flex justify-content-between">
                 <h5 class="mb-0">Bookings</h5>
                 @if($trip->status === 'active' && $trip->available_seats > 0)
-                    <a href="{{ route('admin.bookings.create') }}?trip_id={{ $trip->id }}" class="btn btn-sm btn-primary">
+                    <a href="{{ route('admin.bookings.create', ['tripId' => $trip->id]) }}" class="btn btn-sm btn-primary">
                         <i class="bi bi-plus me-1"></i>Book
                     </a>
                 @endif
@@ -51,7 +51,9 @@
                             <tbody>
                                 @foreach($trip->bookings as $booking)
                                     <tr>
-                                        <td>{{ $booking->user->name }}<br><small>{{ $booking->user->phone_number }}</small></td>
+                                        <td>
+                                            {{ $booking->getPrimaryPassengerName() }}<br><small>{{ $booking->getPrimaryPassengerPhone() }}</small>
+                                        </td>
                                         <td>{{ $booking->seats_booked }}</td>
                                         <td>
                                             @if($booking->payment)

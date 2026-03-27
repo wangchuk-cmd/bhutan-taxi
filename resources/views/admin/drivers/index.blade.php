@@ -3,6 +3,7 @@
 @section('title', 'Manage Drivers')
 
 @section('content')
+@include('components.confirm-modal')
 <h4 class="mb-4"><i class="bi bi-person-badge me-2"></i>Drivers Management</h4>
 
 <div class="card">
@@ -50,9 +51,9 @@
                                                 <button class="btn btn-sm btn-success" title="Verify"><i class="bi bi-check"></i></button>
                                             </form>
                                         @endif
-                                        <form action="{{ route('admin.drivers.toggle', $driver->id) }}" method="POST" class="d-inline">
+                                        <form id="toggleForm-{{ $driver->id }}" action="{{ route('admin.drivers.toggle', $driver->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button class="btn btn-sm btn-outline-{{ $driver->active ? 'danger' : 'success' }}" title="{{ $driver->active ? 'Deactivate' : 'Activate' }}">
+                                            <button type="button" class="btn btn-sm btn-outline-{{ $driver->active ? 'danger' : 'success' }}" title="{{ $driver->active ? 'Deactivate' : 'Activate' }}" onclick="showConfirmModal('Are you sure you want to {{ $driver->active ? 'deactivate' : 'activate' }} this driver?', '{{ $driver->active ? 'Deactivate' : 'Activate' }} Driver', function() { document.getElementById('toggleForm-{{ $driver->id }}').submit(); })">
                                                 <i class="bi bi-{{ $driver->active ? 'x-circle' : 'check-circle' }}"></i>
                                             </button>
                                         </form>

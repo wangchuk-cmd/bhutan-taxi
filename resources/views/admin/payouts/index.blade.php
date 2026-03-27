@@ -3,6 +3,7 @@
 @section('title', 'Manage Payouts')
 
 @section('content')
+@include('components.confirm-modal')
 <h4 class="mb-4"><i class="bi bi-wallet2 me-2"></i>Driver Payouts</h4>
 
 <div class="row mb-4">
@@ -65,9 +66,9 @@
                                 </td>
                                 <td>
                                     @if($payout->status === 'pending')
-                                        <form action="{{ route('admin.payouts.process', $payout->id) }}" method="POST" class="d-inline">
+                                        <form id="payoutForm-{{ $payout->id }}" action="{{ route('admin.payouts.process', $payout->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button class="btn btn-sm btn-success" onclick="return confirm('Mark as paid?');">
+                                            <button type="button" class="btn btn-sm btn-success" onclick="showConfirmModal('Mark this payout as paid?', 'Process Payout', function() { document.getElementById('payoutForm-{{ $payout->id }}').submit(); })">
                                                 <i class="bi bi-check-circle me-1"></i>Pay
                                             </button>
                                         </form>

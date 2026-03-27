@@ -45,6 +45,174 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('stats', 'recentBookings', 'pendingDrivers'));
     }
 
+    // Financial Details Report
+    public function financialDetails(Request $request)
+    {
+        $metric = $request->get('metric', 'revenue'); // revenue, charges, or payouts
+        $period = $request->get('period', 'monthly');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        // Default to last 30 days
+        if (!$startDate) {
+            $startDate = now()->subDays(30)->format('Y-m-d');
+        }
+        if (!$endDate) {
+            $endDate = now()->format('Y-m-d');
+        }
+
+        // Initialize data based on metric type
+        if ($metric === 'charges') {
+            // Service Charges data
+            $data = Payout::whereBetween('created_at', [$startDate, $endDate])
+                ->orderBy('created_at')
+                ->get();
+            
+            $totalAmount = $data->sum('service_charge');
+            $count = $data->count();
+            $avgAmount = $count > 0 ? $totalAmount / $count : 0;
+            
+            // Group by date
+            $dailyData = $data->groupBy(function($item) {
+                return $item->created_at->format('Y-m-d');
+            })->map->sum('service_charge');
+            
+            $highestDay = $dailyData->max() ?? 0;
+            $lowestDay = $dailyData->min() ?? 0;
+            $avgDaily = $count > 0 ? $totalAmount / max(1, $dailyData->count()) : 0;
+            
+            $metricTitle = 'Service Charges Report';
+            $metricLabel = 'Service Charges';
+            
+        } elseif ($metric === 'payouts') {
+            // Pending Payouts data
+            $data = Payout::where('status', 'pending')
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->orderBy('created_at')
+                ->get();
+            
+            $totalAmount = $data->sum('payout_amount');
+            $count = $data->count();
+            $avgAmount = $count > 0 ? $totalAmount / $count : 0;
+            
+            // Group by date
+            $dailyData = $data->groupBy(function($item) {
+                return $item->created_at->format('Y-m-d');
+            })->map->sum('payout_amount');
+            
+            $highestDay = $dailyData->max() ?? 0;
+            $lowestDay = $dailyData->min() ?? 0;
+            $avgDaily = $count > 0 ? $totalAmount / max(1, $dailyData->count()) : 0;
+            
+            $metricTitle = 'Pending Payouts Report';
+            $metricLabel = 'Pending Payouts';
+            
+        } else {
+            // Revenue data (default)
+            $data = Payment::completed()
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->orderBy('created_at')
+                ->get();
+            
+            $totalAmount = $data->sum('amount');
+            $count = $data->count();
+            $avgAmount = $count > 0 ? $totalAmount / $count : 0;
+            
+            // Group by date
+            $dailyData = $data->groupBy(function($item) {
+                return $item->created_at->format('Y-m-d');
+            })->map->sum('amount');
+            
+            $highestDay = $dailyData->max() ?? 0;
+            $lowestDay = $dailyData->min() ?? 0;
+            $avgDaily = $count > 0 ? $totalAmount / max(1, $dailyData->count()) : 0;
+            
+            $metricTitle = 'Total Revenue Report';
+            $metricLabel = 'Total Revenue';
+        }
+
+        // Generate chart data based on period
+        if ($period === 'daily') {
+            $chartData = $this->generateDailyChartData($data);
+        } elseif ($period === 'yearly') {
+            $chartData = $this->generateYearlyChartData($data);
+        } else {
+            $chartData = $this->generateMonthlyChartData($data);
+        }
+
+        return view('admin.financial-details', compact(
+            'totalAmount',
+            'avgAmount',
+            'count',
+            'highestDay',
+            'lowestDay',
+            'avgDaily',
+            'chartData',
+            'period',
+            'startDate',
+            'endDate',
+            'metric',
+            'metricTitle',
+            'metricLabel'
+        ));
+    }
+
+    private function generateDailyChartData($payments)
+    {
+        $data = $payments->groupBy(function($payment) {
+            return $payment->created_at->format('Y-m-d');
+        })
+        ->map->sum('amount')
+        ->toArray();
+
+        return [
+            'labels' => array_keys($data),
+            'values' => array_values($data)
+        ];
+    }
+
+    private function generateMonthlyChartData($payments)
+    {
+        $data = $payments->groupBy(function($payment) {
+            return $payment->created_at->month;
+        })
+        ->map->sum('amount')
+        ->toArray();
+
+        $monthLabels = [
+            1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr',
+            5 => 'May', 6 => 'Jun', 7 => 'Jul', 8 => 'Aug',
+            9 => 'Sep', 10 => 'Oct', 11 => 'Nov', 12 => 'Dec'
+        ];
+
+        $labels = [];
+        $values = [];
+
+        foreach ($data as $month => $amount) {
+            $labels[] = $monthLabels[$month] ?? 'Month ' . $month;
+            $values[] = $amount;
+        }
+
+        return [
+            'labels' => $labels,
+            'values' => $values
+        ];
+    }
+
+    private function generateYearlyChartData($payments)
+    {
+        $data = $payments->groupBy(function($payment) {
+            return $payment->created_at->year;
+        })
+        ->map->sum('amount')
+        ->toArray();
+
+        return [
+            'labels' => array_keys($data),
+            'values' => array_values($data)
+        ];
+    }
+
     // Route Management
     public function routes()
     {
@@ -166,7 +334,7 @@ class AdminController extends Controller
 
     public function tripDetails($id)
     {
-        $trip = Trip::with(['driver.user', 'route', 'bookings.passenger', 'payout'])
+        $trip = Trip::with(['driver.user', 'route', 'bookings.passenger', 'bookings.payment', 'payout'])
             ->findOrFail($id);
 
         return view('admin.trips.show', compact('trip'));

@@ -3,27 +3,94 @@
 @section('title', 'Create Trip')
 
 @section('content')
-<div class="mb-4">
-    <a href="{{ route('driver.trips') }}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left me-2"></i>Back to Trips
+
+<style>
+    :root {
+        --primary-color: #2563eb;
+        --text-dark: #111827;
+        --text-muted: #374151;
+        --bg-light: #f3f4f6;
+        --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+        --card-shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 14px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: all 0.2s;
+        border: 1px solid #e5e7eb;
+    }
+
+    .back-btn:hover {
+        background: var(--bg-light);
+        color: var(--text-dark);
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: var(--card-shadow);
+        border: 1px solid #f0f0f0;
+    }
+
+    .alert-error {
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 24px;
+        color: #7f1d1d;
+    }
+
+    .alert-error div {
+        margin-bottom: 6px;
+        font-size: 14px;
+    }
+</style>
+
+<div class="page-header">
+    <a href="{{ route('driver.trips') }}" class="back-btn">
+        <i class="bi bi-arrow-left"></i>Back to Trips
     </a>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Create New Trip</h5>
-    </div>
-    <div class="card-body">
-        @if($errors->any())
-            <div class="alert alert-danger">
-                @foreach($errors->all() as $error)
-                    <div>{{ $error }}</div>
-                @endforeach
-            </div>
-        @endif
+<div class="form-card">
+    <h1 class="page-title" style="margin-bottom: 32px;">
+        <i class="bi bi-plus-circle" style="font-size: 28px; color: var(--primary-color); vertical-align: middle;"></i>
+        Create New Trip
+    </h1>
 
-        <form action="{{ route('driver.trips.store') }}" method="POST">
-            @csrf
+    @if($errors->any())
+        <div class="alert-error">
+            @foreach($errors->all() as $error)
+                <div>{{ $error }}</div>
+            @endforeach
+        </div>
+    @endif
+
+    <form action="{{ route('driver.trips.store') }}" method="POST">
+        @csrf
             
             <div class="row">
                 <div class="col-md-6 mb-3">
@@ -110,14 +177,41 @@
 
             <hr>
 
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-circle me-2"></i>Create Trip
+            <div style="display: flex; gap: 12px; margin-top: 32px; border-top: 1px solid #e5e7eb; padding-top: 24px;">
+                <button type="submit" style="
+                    background: var(--primary-color);
+                    color: white;
+                    border: none;
+                    padding: 10px 24px;
+                    border-radius: 8px;
+                    font-weight: 500;
+                    font-size: 14px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    transition: all 0.2s;
+                " onmouseover="this.style.background='#1d4ed8'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(37, 99, 235, 0.3)';" 
+                   onmouseout="this.style.background='var(--primary-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                    <i class="bi bi-check-circle"></i>Create Trip
                 </button>
-                <a href="{{ route('driver.trips') }}" class="btn btn-outline-secondary">Cancel</a>
+                <a href="{{ route('driver.trips') }}" style="
+                    color: var(--text-muted);
+                    text-decoration: none;
+                    padding: 10px 24px;
+                    border-radius: 8px;
+                    font-weight: 500;
+                    font-size: 14px;
+                    border: 1px solid #e5e7eb;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    transition: all 0.2s;
+                    background: white;
+                " onmouseover="this.style.background='var(--bg-light)'; this.style.color='var(--text-dark)';" 
+                   onmouseout="this.style.background='white'; this.style.color='var(--text-muted)';">Cancel</a>
             </div>
         </form>
-    </div>
 </div>
 
 @push('scripts')

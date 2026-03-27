@@ -3,6 +3,7 @@
 @section('title', 'Booking Details')
 
 @section('content')
+@include('components.confirm-modal')
 <div class="container py-4">
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
@@ -216,10 +217,9 @@
                             <i class="bi bi-info-circle me-1"></i>
                             You can cancel this booking for a full refund (more than 24 hours before departure).
                         </p>
-                        <form action="{{ route('booking.cancel', $booking->id) }}" method="POST"
-                              onsubmit="return confirm('Are you sure you want to cancel this booking? You will receive a full refund.');">
+                        <form id="cancelBookingForm" action="{{ route('booking.cancel', $booking->id) }}" method="POST">
                             @csrf
-                            <button type="submit" class="btn btn-danger w-100">
+                            <button type="button" class="btn btn-danger w-100" onclick="showConfirmModal('Are you sure you want to cancel this booking? You will receive a full refund.', 'Cancel Booking', function() { document.getElementById('cancelBookingForm').submit(); })">
                                 <i class="bi bi-x-circle me-2"></i>Cancel Booking
                             </button>
                         </form>

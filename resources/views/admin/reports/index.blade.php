@@ -3,6 +3,7 @@
 @section('title', 'Reports & Data Management')
 
 @section('content')
+@include('components.confirm-modal')
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="bi bi-file-earmark-spreadsheet me-2"></i>Reports & Data Management</h2>
@@ -774,22 +775,23 @@
     }
 
     function processRefund(bookingId, status) {
-        if (!confirm('Mark this booking as refunded?')) return;
-        fetch(`/admin/reports/update/refund/${bookingId}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: JSON.stringify({ refund_status: status }) })
-        .then(res => res.json())
-        .then(result => {
-            if (result.success) { alert('Refund processed!'); searchRefunds(); loadPendingRefundsCount(); }
-            else { alert('Error: ' + (result.message || 'Failed')); }
+        showConfirmModal('Mark this booking as refunded?', 'Process Refund', function() {
+            fetch(`/admin/reports/update/refund/${bookingId}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: JSON.stringify({ refund_status: status }) })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) { alert('Refund processed!'); searchRefunds(); loadPendingRefundsCount(); }
+                else { alert('Error: ' + (result.message || 'Failed')); }
+            });
         });
     }
 
     function markPayoutComplete(payoutId) {
-        if (!confirm('Mark payout as completed?')) return;
-        fetch(`/admin/reports/update/payout/${payoutId}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: JSON.stringify({ status: 'completed' }) })
-        .then(res => res.json())
-        .then(result => {
-            if (result.success) { alert('Payout completed!'); searchPayouts(); }
-            else { alert('Error: ' + (result.message || 'Failed')); }
+        showConfirmModal('Mark payout as completed?', 'Complete Payout', function() {
+            fetch(`/admin/reports/update/payout/${payoutId}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: JSON.stringify({ status: 'completed' }) })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) { alert('Payout completed!'); searchPayouts(); }
+                else { alert('Error: ' + (result.message || 'Failed')); }
         });
     }
 

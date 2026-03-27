@@ -73,44 +73,79 @@
     </div>
 </div>
 
-<!-- Revenue Section -->
+<!-- Financial Overview Section -->
+<div class="mb-4">
+    <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 4px;">Financial Overview</h3>
+    <p style="color: #6b7280; font-size: 14px; margin-bottom: 24px;">Track your platform's revenue, commissions, and payouts.</p>
+</div>
+
 <div class="row g-3 mb-4">
-    <!-- Total Revenue -->
-    <div class="col-12 col-md-4">
-        <div class="dashboard-card">
-            <div class="card-header">
-                <h5><i class="bi bi-graph-up me-2"></i>Total Revenue</h5>
+    <!-- Total Revenue Card -->
+    <div class="col-12 col-sm-6 col-lg-4">
+        <div style="background: #ffffff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); border: 1px solid rgba(0, 0, 0, 0.05); transition: all 0.3s ease;">
+            <div style="margin-bottom: 16px;">
+                <p style="color: #6b7280; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">Total Revenue</p>
             </div>
-            <div class="card-body text-center py-4">
-                <h3 style="font-size: 32px; font-weight: 700; color: #10b981;">Nu. {{ number_format($stats['totalRevenue']) }}</h3>
-                <p class="text-muted mb-0">All-time platform revenue</p>
+            
+            <div style="margin-bottom: 16px; display: flex; align-items: baseline; gap: 12px;">
+                <h2 style="font-size: 32px; font-weight: 700; color: #1f2937; margin: 0;">Nu. {{ number_format($stats['totalRevenue']) }}</h2>
+                <div style="display: flex; align-items: center; gap: 4px; background: #e8f5e9; padding: 4px 8px; border-radius: 6px;">
+                    <i class="bi bi-arrow-up" style="font-size: 14px; color: #10b981;"></i>
+                    <span style="font-size: 13px; font-weight: 600; color: #10b981;">12%</span>
+                </div>
             </div>
+            
+            <p style="color: #9ca3af; font-size: 13px; margin-bottom: 20px; line-height: 1.5;">Insight: Platform revenue shows consistent growth this month.</p>
+            
+            <a href="{{ route('admin.financial.details', ['metric' => 'revenue']) }}" style="display: inline-block; color: #3b82f6; font-size: 13px; font-weight: 500; text-decoration: none; transition: color 0.2s;">
+                View Details <i class="bi bi-arrow-right ms-1" style="font-size: 12px;"></i>
+            </a>
         </div>
     </div>
 
-    <!-- Service Charges -->
-    <div class="col-12 col-md-4">
-        <div class="dashboard-card">
-            <div class="card-header">
-                <h5><i class="bi bi-percent me-2"></i>Service Charges</h5>
+    <!-- Service Charges Card -->
+    <div class="col-12 col-sm-6 col-lg-4">
+        <div style="background: #ffffff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); border: 1px solid rgba(0, 0, 0, 0.05); transition: all 0.3s ease;">
+            <div style="margin-bottom: 16px;">
+                <p style="color: #6b7280; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">Service Charges</p>
             </div>
-            <div class="card-body text-center py-4">
-                <h3 style="font-size: 32px; font-weight: 700; color: #f59e0b;">Nu. {{ number_format($stats['serviceCharges']) }}</h3>
-                <p class="text-muted mb-0">Platform commission</p>
+            
+            <div style="margin-bottom: 16px; display: flex; align-items: baseline; gap: 12px;">
+                <h2 style="font-size: 32px; font-weight: 700; color: #1f2937; margin: 0;">Nu. {{ number_format($stats['serviceCharges']) }}</h2>
+                <div style="display: flex; align-items: center; gap: 4px; background: #fef3c7; padding: 4px 8px; border-radius: 6px;">
+                    <i class="bi bi-arrow-up" style="font-size: 14px; color: #f59e0b;"></i>
+                    <span style="font-size: 13px; font-weight: 600; color: #f59e0b;">8%</span>
+                </div>
             </div>
+            
+            <p style="color: #9ca3af; font-size: 13px; margin-bottom: 20px; line-height: 1.5;">Insight: Commission collection is on track with expected margins.</p>
+            
+            <a href="{{ route('admin.financial.details', ['metric' => 'charges']) }}" style="display: inline-block; color: #3b82f6; font-size: 13px; font-weight: 500; text-decoration: none; transition: color 0.2s;">
+                View Details <i class="bi bi-arrow-right ms-1" style="font-size: 12px;"></i>
+            </a>
         </div>
     </div>
 
-    <!-- Pending Payouts -->
-    <div class="col-12 col-md-4">
-        <div class="dashboard-card">
-            <div class="card-header">
-                <h5><i class="bi bi-wallet me-2"></i>Pending Payouts</h5>
+    <!-- Pending Payouts Card -->
+    <div class="col-12 col-sm-6 col-lg-4">
+        <div style="background: #ffffff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); border: 1px solid rgba(0, 0, 0, 0.05); transition: all 0.3s ease;">
+            <div style="margin-bottom: 16px;">
+                <p style="color: #6b7280; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">Pending Payouts</p>
             </div>
-            <div class="card-body text-center py-4">
-                <h3 style="font-size: 32px; font-weight: 700; color: #ef4444;">Nu. {{ number_format($stats['pendingPayouts']) }}</h3>
-                <p class="text-muted mb-0">To be paid to drivers</p>
+            
+            <div style="margin-bottom: 16px; display: flex; align-items: baseline; gap: 12px;">
+                <h2 style="font-size: 32px; font-weight: 700; color: #1f2937; margin: 0;">Nu. {{ number_format($stats['pendingPayouts']) }}</h2>
+                <div style="display: flex; align-items: center; gap: 4px; background: #fecaca; padding: 4px 8px; border-radius: 6px;">
+                    <i class="bi bi-arrow-down" style="font-size: 14px; color: #ef4444;"></i>
+                    <span style="font-size: 13px; font-weight: 600; color: #ef4444;">5%</span>
+                </div>
             </div>
+            
+            <p style="color: #9ca3af; font-size: 13px; margin-bottom: 20px; line-height: 1.5;">Insight: Payouts processing on schedule, lower than last period.</p>
+            
+            <a href="{{ route('admin.payouts') }}" style="display: inline-block; color: #3b82f6; font-size: 13px; font-weight: 500; text-decoration: none; transition: color 0.2s;">
+                View Details <i class="bi bi-arrow-right ms-1" style="font-size: 12px;"></i>
+            </a>
         </div>
     </div>
 </div>

@@ -3,6 +3,7 @@
 @section('title', 'My Bookings')
 
 @section('content')
+@include('components.confirm-modal')
 <div class="container py-3">
     <h2 class="mb-4"><i class="bi bi-ticket-perforated me-2"></i>My Bookings</h2>
 
@@ -58,10 +59,9 @@
                                         <i class="bi bi-eye"></i>
                                     </a>
                                     @if($booking->canCancel())
-                                        <form action="{{ route('booking.cancel', $booking->id) }}" method="POST" class="d-inline"
-                                              onsubmit="return confirm('Cancel this booking?');">
+                                        <form id="cancelForm-{{ $booking->id }}" action="{{ route('booking.cancel', $booking->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn-action btn-cancel" title="Cancel Booking">
+                                            <button type="button" class="btn-action btn-cancel" title="Cancel Booking" onclick="showConfirmModal('Cancel this booking?', 'Cancel Booking', function() { document.getElementById('cancelForm-{{ $booking->id }}').submit(); })">
                                                 <i class="bi bi-x-circle"></i>
                                             </button>
                                         </form>

@@ -3,6 +3,7 @@
 @section('title', 'Manage Trips')
 
 @section('content')
+@include('components.confirm-modal')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0"><i class="bi bi-car-front me-2"></i>Trips Management</h4>
     <a href="{{ route('admin.trips.create') }}" class="btn btn-primary">
@@ -40,16 +41,9 @@
                                         <a href="{{ route('admin.trips.show', $trip->id) }}" class="btn btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
                                         <a href="{{ route('admin.trips.edit', $trip->id) }}" class="btn btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
                                         @if($trip->status === 'active')
-                                            <form action="{{ route('admin.trips.cancel', $trip->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Cancel this trip?');">
+                                            <form id="cancelForm-{{ $trip->id }}" action="{{ route('admin.trips.cancel', $trip->id) }}" method="POST" class="d-inline">
                                                 @csrf
-                                                <button class="btn btn-sm btn-outline-warning" title="Cancel"><i class="bi bi-x-circle"></i></button>
-                                            </form>
-                                        @endif
-                                        @if($trip->bookings_count == 0)
-                                            <form action="{{ route('admin.trips.delete', $trip->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this trip? This cannot be undone.');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                                                <button type="button" class="btn btn-sm btn-outline-warning" title="Cancel" onclick="showConfirmModal('Are you sure you want to cancel this trip?', 'Cancel Trip', function() { document.getElementById('cancelForm-{{ $trip->id }}').submit(); })"><i class="bi bi-x-circle"></i></button>
                                             </form>
                                         @endif
                                     </div>
