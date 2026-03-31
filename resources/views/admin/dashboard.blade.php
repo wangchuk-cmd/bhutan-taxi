@@ -170,7 +170,7 @@
                                     <tr>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                <div class="avatar" style="width: 40px; height: 40px; background: linear-gradient(135deg, #2563eb, #06b6d4); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-right: 12px;">
+                                                <div class="avatar" style="width: 40px; height: 40px; background: linear-gradient(135deg, #0d6efd, #06b6d4); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-right: 12px;">
                                                     {{ substr($driver->user->name, 0, 1) }}
                                                 </div>
                                                 <div>
@@ -268,7 +268,7 @@
                 <div class="row g-2">
                     <div class="col-12 col-sm-6 col-md-3">
                         <a href="{{ route('admin.drivers') }}" class="btn btn-light w-100 text-start" style="border: 1px solid #e5e7eb; padding: 12px; border-radius: 8px;">
-                            <i class="bi bi-people me-2" style="color: #2563eb;"></i>
+                            <i class="bi bi-people me-2" style="color: #0d6efd;"></i>
                             <small>Manage Drivers</small>
                         </a>
                     </div>

@@ -73,7 +73,7 @@ body {
     background-color: var(--gray-100);
     color: var(--dark);
     line-height: 1.55;
-    font-size: 15px;
+    font-size: 17px;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -101,9 +101,9 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
    NAVBAR - APP HEADER
    ======================================== */
 .navbar {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    background: var(--dark);
     box-shadow: var(--shadow-md);
-    padding: 0.5rem 0;
+    padding: 0.75rem 0;
     position: sticky;
     top: 0;
     z-index: 1030;
@@ -111,15 +111,15 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
 
 .navbar-brand {
     font-weight: 700;
-    font-size: 1.25rem !important;
+    font-size: 1.6rem !important;
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
 .navbar-nav .nav-link {
-    padding: 0.5rem 0.75rem !important;
-    font-size: 0.9rem;
+    padding: 0.6rem 0.9rem !important;
+    font-size: 1.1rem;
     border-radius: var(--radius-sm);
     transition: background-color 0.2s;
 }
@@ -516,6 +516,7 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
 .search-input:focus {
     background: rgba(37,99,235,0.04) !important;
     outline: none !important;
+    box-shadow: none !important;
 }
 
 /* standalone date row — give it a border */
@@ -686,14 +687,14 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
    SIDEBAR - RESPONSIVE
    ======================================== */
 .sidebar {
-    background: white;
-    border-right: 1px solid var(--gray-200);
+    background: #1f2937;
+    border-right: 1px solid #374151;
     min-height: calc(100vh - 56px);
     transition: transform 0.3s ease;
 }
 
 .sidebar .nav-link {
-    color: var(--dark);
+    color: #f0f0f0;
     padding: 0.75rem 1rem;
     border-radius: var(--radius-sm);
     margin: 0.25rem 0.5rem;
@@ -701,13 +702,15 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
+    font-weight: 500;
 }
 
 .sidebar .nav-link:hover,
 .sidebar .nav-link.active {
     background: var(--primary);
     color: white;
+    font-weight: 600;
 }
 
 .sidebar .nav-link i {
@@ -1539,9 +1542,9 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
     background: rgba(16, 185, 129, 0.18);
     border: 1.5px solid rgba(16, 185, 129, 0.55);
     color: #a7f3d0;
-    font-size: 0.8rem;
+    font-size: 0.95rem;
     font-weight: 700;
-    padding: 0.38rem 1rem;
+    padding: 0.45rem 1.1rem;
     border-radius: var(--radius-full);
     margin-bottom: 1rem;
     letter-spacing: 0.02em;
@@ -1839,55 +1842,55 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
 
 .stat-pill-num {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    color: var(--dark);
+    font-size: 0.82rem;
     line-height: 1.1;
 }
-
+    font-size: 0.8rem;
 .stat-pill-lbl {
     font-size: 0.72rem;
-    color: var(--gray-500);
+    font-size: clamp(1.35rem, 3.8vw, 2rem);
     font-weight: 500;
 }
-
+    font-size: 1rem;
 /* ========================================
    HOME v2 — SECTION HEADINGS
-   ======================================== */
+    font-size: 1rem;
 .section-eyebrow {
     display: inline-block;
-    font-size: 0.72rem;
+    font-size: 0.9rem;
     font-weight: 700;
     letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-size: 1rem;
     color: var(--primary);
     margin-bottom: 0.4rem;
-}
+    font-size: 0.8rem;
 
 .section-title {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.9rem;
     font-size: clamp(1.15rem, 3.5vw, 1.65rem);
     font-weight: 800;
-    letter-spacing: -0.025em;
+    font-size: 1.15rem;
     color: var(--dark);
     margin-bottom: 0.4rem;
-}
+    font-size: 0.82rem;
 
 .section-sub {
-    font-size: 0.875rem;
-    color: var(--gray-500);
-    margin: 0;
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+    font-size: 0.92rem;
 }
 
-/* ========================================
-   HOME v2 — HOW IT WORKS
+    font-size: 0.9rem;
+    padding: 0.45rem 0.95rem;
    ======================================== */
 .how-section { background: var(--gray-100); }
-
+    font-size: 1.08rem;
 .how-card {
     text-align: center;
-    padding: 1.4rem 1rem 1.25rem;
+    font-size: 0.95rem;
     background: white;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
@@ -2719,7 +2722,7 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
    ======================================== */
 .hero-fit {
     position: relative;
-    background: linear-gradient(165deg, #2563eb 0%, #1d4ed8 100%);
+    background: linear-gradient(135deg, var(--dark) 0%, var(--dark-light) 100%);
     min-height: 100vh; /* Reais full screen */
     display: flex;
     align-items: center;
@@ -2736,7 +2739,7 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
 }
 
 .hf-title {
-    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-size: clamp(2.6rem, 5.5vw, 4.2rem);
     font-weight: 800;
     line-height: 1.1;
     letter-spacing: -0.03em;
@@ -2744,7 +2747,7 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
 }
 
 .hf-sub {
-    font-size: clamp(0.95rem, 2vw, 1.15rem);
+    font-size: clamp(1.05rem, 2.2vw, 1.3rem);
     opacity: 0.9;
     max-width: 480px;
 }
@@ -2762,7 +2765,7 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
 }
 
 .sc-fit .v3-label {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     font-weight: 700;
     text-transform: uppercase;
     color: #64748b;
@@ -2777,7 +2780,7 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
 }
 
 .sc-fit .form-control {
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     font-weight: 600;
 }
 
@@ -2790,7 +2793,7 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
 }
 
 .sc-fit .btn-search {
-    padding: 0.9rem;
+    padding: 1rem;
     font-weight: 700;
     border-radius: 14px;
     text-transform: uppercase;
@@ -2800,9 +2803,9 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
 /* Mobile Specific Refinement */
 @media (max-width: 991.98px) {
     .hero-fit {
-        min-height: 100vh;
-        padding-top: 20px;
-        padding-bottom: 40px;
+        min-height: auto;
+        padding-top: 16px;
+        padding-bottom: 16px;
         text-align: center;
         display: block; /* Let content stack naturally */
         overflow-y: auto;
@@ -2817,6 +2820,92 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
     .hf-title {
         margin-top: 0.5rem;
     }
+}
+
+@media (min-width: 992px) {
+    .hero-live-badge {
+        font-size: 1.05rem;
+        padding: 0.5rem 1.2rem;
+    }
+
+    .hf-title {
+        font-size: clamp(3rem, 6vw, 4.6rem);
+    }
+
+    .hf-sub {
+        font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+        max-width: 560px;
+    }
+
+    .sc-fit {
+        max-width: 600px;
+        padding: 2.5rem;
+    }
+
+    .sc-fit .v3-label {
+        font-size: 0.95rem;
+    }
+
+    .sc-fit .form-control {
+        font-size: 1.2rem;
+    }
+
+    .sc-fit .btn-search {
+        padding: 1.3rem;
+        font-size: 1.1rem;
+    }
+
+
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .sc-fit {
+        max-width: 440px;
+        padding: 1.4rem;
+    }
+    .sc-fit .form-control { font-size: 1.02rem; }
+    .sc-fit .btn-search { padding: 1.05rem; font-size: 0.98rem; }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .sc-fit {
+        max-width: 520px;
+        padding: 1.8rem;
+    }
+    .sc-fit .form-control { font-size: 1.08rem; }
+    .sc-fit .btn-search { padding: 1.15rem; font-size: 1.02rem; }
+}
+
+@media (min-width: 1200px) {
+    .sc-fit {
+        max-width: 640px;
+        padding: 2.8rem;
+    }
+    .sc-fit .v3-label { font-size: 1rem; }
+    .sc-fit .form-control { font-size: 1.25rem; }
+    .sc-fit .btn-search { padding: 1.4rem; font-size: 1.15rem; }
+}
+    .scv3-header h2 {
+        font-size: 1.2rem;
+    }
+
+    .scv3-header span {
+        font-size: 0.9rem;
+    }
+
+    .stat-pill-num { font-size: 1.25rem; }
+    .stat-pill-lbl { font-size: 0.82rem; }
+
+    .section-title { font-size: clamp(1.4rem, 3.6vw, 2rem); }
+    .section-sub { font-size: 1rem; }
+
+    .how-title { font-size: 1rem; }
+    .how-desc { font-size: 0.88rem; }
+
+    .tcv2-city { font-size: 0.98rem; }
+    .tcv2-meta-item { font-size: 0.9rem; }
+    .tcv2-price-amt { font-size: 1.15rem; }
+
+    .bc-title { font-size: 1.05rem; }
+    .bc-desc { font-size: 0.9rem; }
 }
 
 /* Tiny Decor */
@@ -3295,5 +3384,49 @@ small, .text-small { font-size: clamp(0.7rem, 1.3vw, 0.8rem); }
         width: 36px;
         height: 36px;
         font-size: 1rem;
+    }
+}
+
+/* Live operational badge in hero */
+.hero-live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.live-dot {
+    width: 10px;
+    height: 10px;
+    background-color: var(--success);
+    border-radius: 50%;
+    position: relative;
+}
+
+.live-dot-ring {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--success);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
     }
 }

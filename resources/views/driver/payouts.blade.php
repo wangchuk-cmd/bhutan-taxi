@@ -6,7 +6,7 @@
 
 <style>
     :root {
-        --primary-color: #2563eb;
+        --primary-color: #0d6efd;
         --success-color: #10b981;
         --warning-color: #f59e0b;
         --text-dark: #111827;
@@ -167,7 +167,7 @@
     }
 
     .badge-success { background: #d1fae5; color: var(--success-color); }
-    .badge-warning { background: #fed7aa; color: var(--warning-color); }
+    .badge-warning { background: #fed7aa; color: #ff6b00; }
 
     .empty-state {
         text-align: center;

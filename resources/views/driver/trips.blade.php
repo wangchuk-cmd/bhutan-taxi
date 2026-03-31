@@ -7,176 +7,90 @@
 
 <style>
     :root {
-        --primary-color: #2563eb;
-        --success-color: #10b981;
-        --warning-color: #f59e0b;
-        --danger-color: #ef4444;
-        --text-dark: #111827;
-        --text-muted: #374151;
-        --bg-light: #f3f4f6;
-        --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-        --card-shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05);
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --warning-color: #ffc107;
+        --danger-color: #dc3545;
+        --text-dark: #212529;
+        --text-muted: #6c757d;
+        --bg-light: #f8f9fa;
+        --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     }
 
     .page-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 32px;
-        gap: 20px;
+        margin-bottom: 24px;
     }
 
     .page-header h1 {
-        font-size: 28px;
+        font-size: 24px;
         font-weight: 600;
-        color: var(--text-dark);
         margin: 0;
     }
 
-    .create-btn {
-        padding: 12px 24px;
-        background: var(--primary-color);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 500;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s;
-    }
-
-    .create-btn:hover {
-        background: #1d4ed8;
-        box-shadow: var(--card-shadow-lg);
-        transform: translateY(-2px);
-    }
-
     .trips-container {
-        background: white;
-        border-radius: 12px;
+        background: #fff;
+        border-radius: 8px;
         box-shadow: var(--card-shadow);
-        border: 1px solid #f0f0f0;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-
-    .trips-container:hover {
-        box-shadow: var(--card-shadow-lg);
+        border: 1px solid rgba(0,0,0,.125);
     }
 
     .trips-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .trips-table thead {
-        background: var(--bg-light);
-        border-bottom: 2px solid #e5e7eb;
+        margin-bottom: 0;
     }
 
     .trips-table th {
-        padding: 16px;
-        text-align: left;
-        font-size: 12px;
-        font-weight: 700;
+        background: var(--bg-light);
         color: var(--text-muted);
+        font-weight: 600;
         text-transform: uppercase;
+        font-size: 0.75rem;
         letter-spacing: 0.5px;
-    }
-
-    .trips-table tbody tr {
-        border-bottom: 1px solid #f0f0f0;
-        transition: background 0.2s;
-    }
-
-    .trips-table tbody tr:hover {
-        background: #fafafa;
+        padding: 1rem;
+        border-bottom: 2px solid #dee2e6;
     }
 
     .trips-table td {
-        padding: 16px;
-        color: var(--text-dark);
-        font-size: 14px;
-        font-weight: 500;
-    }
-
-    .route-info {
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        padding: 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #dee2e6;
     }
 
     .status-badge {
-        display: inline-block;
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 600;
+        padding: 0.35em 0.65em;
+        font-size: 0.75em;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.25rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
     }
 
-    .status-badge.active { background: #d1fae5; color: var(--success-color); }
-    .status-badge.completed { background: #dbeafe; color: var(--primary-color); }
-    .status-badge.cancelled { background: #fee2e2; color: var(--danger-color); }
-
-    .action-buttons {
-        display: flex;
-        gap: 8px;
-    }
-
-    .action-buttons button,
-    .action-buttons a {
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        border: 1px solid;
-        cursor: pointer;
-        transition: all 0.2s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-    }
+    .status-badge.active { background-color: #d1e7dd; color: #0f5132; }
+    .status-badge.completed { background-color: #cfe2ff; color: #084298; }
+    .status-badge.cancelled { background-color: #f8d7da; color: #842029; }
 
     .empty-state {
+        padding: 4rem 2rem;
         text-align: center;
-        padding: 60px 20px;
-    }
-
-    .empty-state-icon {
-        font-size: 48px;
-        color: var(--text-muted);
-        display: block;
-        margin-bottom: 16px;
-    }
-
-    .empty-state-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: var(--text-dark);
-        margin-bottom: 8px;
-    }
-
-    .empty-state-text {
-        color: var(--text-muted);
-        margin-bottom: 24px;
     }
 </style>
 
 <div class="page-header">
-    <h1>My Trips</h1>
-    <a href="{{ route('driver.trips.create') }}" class="create-btn">
-        <i class="bi bi-plus-circle"></i>Create Trip
+    <h1><i class="bi bi-map me-2"></i>My Trips</h1>
+    <a href="{{ route('driver.trips.create') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> Create Trip
     </a>
 </div>
 
 <div class="trips-container">
     @if($trips->count() > 0)
-        <div style="overflow-x: auto;">
-            <table class="trips-table">
+        <div class="table-responsive">
+            <table class="table trips-table table-hover align-middle">
                 <thead>
                     <tr>
                         <th>Route</th>
@@ -191,41 +105,37 @@
                     @foreach($trips as $trip)
                         <tr>
                             <td>
-                                <div class="route-info">
-                                    <span style="color: var(--primary-color);">{{ $trip->origin_dzongkhag }}</span>
-                                    <i class="bi bi-arrow-right" style="font-size: 12px;"></i>
-                                    <span>{{ $trip->destination_dzongkhag }}</span>
-                                </div>
+                                <strong>{{ $trip->origin_dzongkhag }}</strong>
+                                <i class="bi bi-arrow-right text-muted mx-1 text-sm"></i>
+                                <strong>{{ $trip->destination_dzongkhag }}</strong>
                             </td>
                             <td>{{ $trip->departure_datetime->format('M d, Y h:i A') }}</td>
                             <td>
-                                <span style="background: #dbeafe; color: var(--primary-color); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                                <span class="badge bg-info text-dark">
                                     {{ $trip->available_seats }}/{{ $trip->total_seats }}
                                 </span>
                             </td>
-                            <td style="font-weight: 600; color: var(--primary-color);">Nu. {{ number_format($trip->price_per_seat) }}</td>
+                            <td><strong>Nu. {{ number_format($trip->price_per_seat) }}</strong></td>
                             <td>
                                 <span class="status-badge {{ strtolower($trip->status) }}">
                                     {{ $trip->status }}
                                 </span>
                             </td>
-                            <td style="text-align: right;">
-                                <div class="action-buttons">
-                                    <a href="{{ route('driver.passengers', $trip->id) }}" style="border-color: var(--primary-color); color: var(--primary-color); background: white;">
+                            <td class="text-end">
+                                <a href="{{ route('driver.passengers', $trip->id) }}" class="btn btn-sm btn-outline-primary" title="View Passengers">
                                         <i class="bi bi-people"></i>
                                     </a>
                                     @if($trip->status === 'active' && $trip->departure_datetime > now())
-                                        <a href="{{ route('driver.trips.edit', $trip->id) }}" style="border-color: #6b7280; color: var(--text-muted); background: white;">
+                                        <a href="{{ route('driver.trips.edit', $trip->id) }}" class="btn btn-sm btn-outline-secondary" title="Edit Trip">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <form id="driverCancelForm-{{ $trip->id }}" action="{{ route('driver.trips.cancel', $trip->id) }}" method="POST" style="display: inline;">
+                                        <form id="driverCancelForm-{{ $trip->id }}" action="{{ route('driver.trips.cancel', $trip->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="button" style="border-color: var(--danger-color); color: var(--danger-color); background: white;" onclick="showConfirmModal('Cancel this trip? All passengers will be refunded.', 'Cancel Trip', function() { document.getElementById('driverCancelForm-{{ $trip->id }}').submit(); })">
+                                            <button type="button" class="btn btn-sm btn-outline-danger" title="Cancel Trip" onclick="showConfirmModal('Cancel this trip? All passengers will be refunded.', 'Cancel Trip', function() { document.getElementById('driverCancelForm-{{ $trip->id }}').submit(); })">
                                                 <i class="bi bi-x-circle"></i>
                                             </button>
                                         </form>
                                     @endif
-                                </div>
                             </td>
                         </tr>
                     @endforeach

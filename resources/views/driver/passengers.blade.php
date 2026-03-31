@@ -6,7 +6,7 @@
 
 <style>
     :root {
-        --primary-color: #2563eb;
+        --primary-color: #0d6efd;
         --success-color: #10b981;
         --text-dark: #1f2937;
         --text-muted: #6b7280;
@@ -40,7 +40,7 @@
     }
 
     .trip-header {
-        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
+        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #0d6efd 100%);
         border-radius: 14px;
         padding: 40px;
         color: white;
@@ -182,7 +182,7 @@
 
     .passenger-index {
         background: #f0f4ff;
-        color: #2563eb;
+        color: #0d6efd;
         width: 36px;
         height: 36px;
         border-radius: 8px;
@@ -229,7 +229,7 @@
 
     .badge-primary {
         background: #f0f4ff;
-        color: #2563eb;
+        color: #0d6efd;
         border: 1px solid #e0e7ff;
     }
 
