@@ -290,19 +290,6 @@
     <!-- Phone Number Validation -->
     <script src="{{ asset('js/phone-validation.js') }}"></script>
     
-    <!-- Form Submit Debug -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Debug: Log form submissions
-        document.querySelectorAll('form').forEach(function(form) {
-            form.addEventListener('submit', function(e) {
-                console.log('Form submitting:', form.id || form.action);
-                console.log('Form data:', new FormData(form));
-            });
-        });
-    });
-    </script>
-    
     <!-- PWA Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {

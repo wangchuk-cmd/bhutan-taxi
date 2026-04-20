@@ -24,7 +24,7 @@ class PaymentController extends Controller
             ->findOrFail($bookingId);
 
         $amount = $booking->total_amount;
-        $timeRemaining = Setting::get('payment_timeout_seconds', 15); // Configurable from admin settings
+        $timeRemaining = Setting::get('payment_timeout_seconds', 300); // 5 minutes for OTP timeout
 
         return view('payment.process', compact('booking', 'amount', 'timeRemaining'));
     }
@@ -48,18 +48,24 @@ class PaymentController extends Controller
             return redirect()->route('home')->with('error', 'Sorry, the seats were taken by another passenger. Please try another trip.');
         }
 
-        DB::transaction(function () use ($booking, $trip) {
+        DB::transaction(function () use ($request, $booking, $trip) {
             // Calculate amount based on booking type
             $amount = $booking->booking_type === 'full' 
                 ? $trip->full_taxi_price 
                 : $trip->price_per_seat * $booking->seats_booked;
+
+            // Extract method and account details for the slip
+            $methodString = $request->input('payment_method', 'RMA (Mock)');
+            if ($request->filled('account_last4')) {
+                $methodString .= ' (Acct: ...' . $request->input('account_last4') . ')';
+            }
 
             // Create payment record
             Payment::create([
                 'booking_id' => $booking->id,
                 'amount' => $amount,
                 'status' => 'completed',
-                'payment_method' => 'mock',
+                'payment_method' => $methodString,
                 'transaction_time' => now(),
             ]);
 

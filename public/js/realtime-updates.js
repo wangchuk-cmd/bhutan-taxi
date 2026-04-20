@@ -108,7 +108,13 @@ const BhutanTaxi = {
         if (!tripsList) return;
         
         try {
-            const response = await fetch(`/api/trips/search?from=${encodeURIComponent(search.from)}&to=${encodeURIComponent(search.to)}&date=${encodeURIComponent(search.date)}`);
+            const response = await fetch(`/api/trips/search?from=${encodeURIComponent(search.from)}&to=${encodeURIComponent(search.to)}&date=${encodeURIComponent(search.date)}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json, text/html'
+                },
+                credentials: 'same-origin'
+            });
             
             if (response.ok) {
                 const data = await response.json();

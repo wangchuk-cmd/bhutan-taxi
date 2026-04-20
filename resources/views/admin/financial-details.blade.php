@@ -257,8 +257,6 @@
         const endDate = document.getElementById('endDate').value;
         
         // In a real app, you'd make an AJAX call to fetch updated data
-        // For now, we'll just show a notification
-        console.log('Filter applied:', { timePeriod, startDate, endDate });
     }
     
     function downloadPDF() {

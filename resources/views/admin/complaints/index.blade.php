@@ -47,54 +47,6 @@
                                     @endif
                                 </td>
                             </tr>
-
-                            <!-- Modal -->
-                            <div class="modal fade" id="complaint{{ $complaint->id }}" tabindex="-1">
-                                <div class="modal-dialog modal-lg">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">{{ $complaint->subject }}</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <p class="text-muted mb-2">
-                                                <strong>From:</strong> {{ $complaint->user->name }} 
-                                                <span class="badge bg-{{ $complaint->user->role === 'driver' ? 'secondary' : 'info' }}">{{ ucfirst($complaint->user->role) }}</span><br>
-                                                <strong>Email:</strong> {{ $complaint->user->email }}<br>
-                                                <strong>Type:</strong> {{ ucfirst($complaint->type) }}<br>
-                                                <strong>Date:</strong> {{ $complaint->created_at->format('M d, Y h:i A') }}
-                                            </p>
-                                            <hr>
-                                            <p>{{ $complaint->message }}</p>
-
-                                            @if($complaint->admin_response)
-                                                <hr>
-                                                <div class="bg-light p-3 rounded">
-                                                    <strong>Admin Response:</strong>
-                                                    <p class="mb-0">{{ $complaint->admin_response }}</p>
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <div class="modal-footer">
-                                            @if($complaint->status !== 'resolved')
-                                                <form action="{{ route('admin.complaints.respond', $complaint->id) }}" method="POST" class="w-100">
-                                                    @csrf
-                                                    <div class="mb-3">
-                                                        <textarea name="admin_response" class="form-control" placeholder="Write your response..." rows="2" required></textarea>
-                                                    </div>
-                                                    <div class="d-flex justify-content-end">
-                                                        <button type="submit" class="btn btn-success">
-                                                            <i class="bi bi-check-circle me-1"></i>Send Response & Resolve
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            @else
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         @endforeach
                     </tbody>
                 </table>
@@ -108,4 +60,55 @@
         @endif
     </div>
 </div>
+
+<!-- Modals must be placed outside of tables and constrained container elements -->
+@foreach($complaints as $complaint)
+    <div class="modal fade" id="complaint{{ $complaint->id }}" tabindex="-1" aria-labelledby="complaint{{ $complaint->id }}Label" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="complaint{{ $complaint->id }}Label">{{ $complaint->subject }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-2">
+                        <strong>From:</strong> {{ $complaint->user->name }} 
+                        <span class="badge bg-{{ $complaint->user->role === 'driver' ? 'secondary' : 'info' }}">{{ ucfirst($complaint->user->role) }}</span><br>
+                        <strong>Email:</strong> {{ $complaint->user->email }}<br>
+                        <strong>Type:</strong> {{ ucfirst($complaint->type) }}<br>
+                        <strong>Date:</strong> {{ $complaint->created_at->format('M d, Y h:i A') }}
+                    </p>
+                    <hr>
+                    <p>{{ $complaint->message }}</p>
+
+                    @if($complaint->admin_response)
+                        <hr>
+                        <div class="bg-light p-3 rounded">
+                            <strong>Admin Response:</strong>
+                            <p class="mb-0">{{ $complaint->admin_response }}</p>
+                        </div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    @if($complaint->status !== 'resolved')
+                        <form action="{{ route('admin.complaints.respond', $complaint->id) }}" method="POST" class="w-100">
+                            @csrf
+                            <div class="mb-3">
+                                <textarea name="admin_response" class="form-control" placeholder="Write your response..." rows="2" required></textarea>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-circle me-1"></i>Send Response & Resolve
+                                </button>
+                            </div>
+                        </form>
+                    @else
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+@endforeach
+
 @endsection

@@ -70,14 +70,14 @@
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Payment Countdown Timer</label>
                     <div class="input-group">
-                        <input type="number" min="5" max="120" 
-                               class="form-control @error('payment_timeout_seconds') is-invalid @enderror" 
-                               name="payment_timeout_seconds" 
-                               value="{{ old('payment_timeout_seconds', $settings['payment_timeout_seconds']) }}">
-                        <span class="input-group-text">seconds</span>
+                        <input type="number" min="1" max="15" 
+                               class="form-control @error('payment_timeout_minutes') is-invalid @enderror" 
+                               name="payment_timeout_minutes" 
+                               value="{{ old('payment_timeout_minutes', intval($settings['payment_timeout_seconds'] / 60)) }}">
+                        <span class="input-group-text">minutes</span>
                     </div>
                     <small class="text-muted">Countdown timer on payment confirmation page. If not paid, seats go to next person.</small>
-                    @error('payment_timeout_seconds')
+                    @error('payment_timeout_minutes')
                         <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
                 </div>

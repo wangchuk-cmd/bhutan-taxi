@@ -209,17 +209,6 @@
     <script src="{{ asset('js/realtime-updates.js') }}"></script>
     <script src="{{ asset('js/phone-validation.js') }}"></script>
     
-    <!-- Form Submit Debug -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('form').forEach(function(form) {
-            form.addEventListener('submit', function(e) {
-                console.log('Form submitting:', form.id || form.action);
-            });
-        });
-    });
-    </script>
-    
     <script>
         // Mobile menu toggle
         function toggleMobileMenu(e) {

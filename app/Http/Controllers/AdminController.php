@@ -1391,7 +1391,7 @@ class AdminController extends Controller
             'service_charge_percentage' => 'required|numeric|min:0|max:100',
             'min_booking_hours'         => 'required|integer|min:0|max:48',
             'max_seats_per_booking'     => 'required|integer|min:1|max:12',
-            'payment_timeout_seconds'   => 'required|integer|min:5|max:120',
+            'payment_timeout_minutes'   => 'required|integer|min:1|max:15',
             'site_name'                 => 'required|string|max:100',
             'contact_email'             => 'nullable|email|max:255',
             'contact_phone'             => 'nullable|string|max:20',
@@ -1401,7 +1401,7 @@ class AdminController extends Controller
         Setting::set('service_charge_percentage', $validated['service_charge_percentage'], 'decimal',  'Service charge percentage for driver payouts');
         Setting::set('min_booking_hours',         $validated['min_booking_hours'],         'integer',  'Minimum hours before departure for booking');
         Setting::set('max_seats_per_booking',     $validated['max_seats_per_booking'],     'integer',  'Maximum seats per booking');
-        Setting::set('payment_timeout_seconds',   $validated['payment_timeout_seconds'],   'integer',  'Seconds for payment confirmation countdown');
+        Setting::set('payment_timeout_seconds', $validated['payment_timeout_minutes'] * 60, 'integer', 'Seconds for payment confirmation countdown');
         Setting::set('site_name',                 $validated['site_name'],                 'string',   'Site name');
         Setting::set('contact_email',             $validated['contact_email'] ?? '',       'string',   'Contact email');
         Setting::set('contact_phone',             $validated['contact_phone'] ?? '',       'string',   'Contact phone');
@@ -1422,3 +1422,4 @@ class AdminController extends Controller
         return redirect()->back()->with('success', 'Payout settings updated successfully.');
     }
 }
+

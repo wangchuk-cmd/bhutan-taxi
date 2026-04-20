@@ -20,16 +20,20 @@ class CacheControl
             $response->headers->set('Cache-Control', 'public, max-age=2592000, immutable');
         }
         // Cache API responses for 3 minutes if not logged in
-        elseif ($request->is('api/*')) {
-            if (!auth()->check()) {
-                $response->headers->set('Cache-Control', 'public, max-age=180');
-            } else {
-                $response->headers->set('Cache-Control', 'private, max-age=60');
-            }
+        elseif ($request->is('api/*') || $request->ajax() || $request->wantsJson()) {
+            $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
+            $response->headers->set('Pragma', 'no-cache');
+            $response->headers->set('Expires', '0');
         }
-        // Cache HTML pages for 1 minute
+        // Cache HTML pages
         else {
-            $response->headers->set('Cache-Control', 'public, max-age=60, must-revalidate');
+            if (auth()->check()) {
+                $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
+                $response->headers->set('Pragma', 'no-cache');
+                $response->headers->set('Expires', '0');
+            } else {
+                $response->headers->set('Cache-Control', 'no-cache, must-revalidate');
+            }
         }
 
         return $response;
