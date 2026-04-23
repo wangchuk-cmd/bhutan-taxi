@@ -94,7 +94,7 @@
                                 <i class="bi bi-car-front text-success me-3 fs-4"></i>
                                 <div>
                                     <small class="text-muted d-block">Vehicle</small>
-                                    <strong>{{ $booking->trip->driver->vehicle_type }} ({{ $booking->trip->driver->taxi_plate_number }})</strong>
+                                    <strong>{{ $booking->trip->driver->vehicle_type }} ({{ $booking->trip->driver->fuel_type === 'Electric' ? '⚡ Electric' : '🛢️ Fuel' }})</strong>
                                 </div>
                             </div>
                         </div>

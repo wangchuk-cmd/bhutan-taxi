@@ -11,6 +11,7 @@ class Driver extends Model
         'license_number',
         'taxi_plate_number',
         'vehicle_type',
+        'fuel_type',
         'verified',
         'active',
     ];

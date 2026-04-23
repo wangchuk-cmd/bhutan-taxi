@@ -15,7 +15,7 @@
                     <!-- Timer -->
                     <div class="text-center mb-4">
                         <p class="text-muted mb-1 text-uppercase small fw-bold">Payment Session Expires In</p>
-                        <div class="display-4 fw-bold font-monospace" id="timer">05:00</div>
+                        <div class="display-4 fw-bold font-monospace" id="timer">{{ sprintf('%02d:%02d', intdiv($timeRemaining, 60), $timeRemaining % 60) }}</div>
                     </div>
 
                     <div class="progress mb-4 bg-light" style="height: 6px;">
@@ -45,72 +45,125 @@
                         </div>
                     </div>
 
-                    <!-- Step 1: Bank Details -->
+                    <!-- Step 1: Select Payment Method -->
                     <div id="step-1" class="text-start">
                         <div class="alert alert-info border-0 rounded-3 small py-2">
                             <i class="bi bi-shield-lock me-2"></i>Secure Checkout via <strong>RMA Payment Gateway</strong>
                         </div>
                         
-                        <label class="form-label fw-bold small text-uppercase text-muted mb-3">1. Select e-Payment Method</label>
+                        <label class="form-label fw-bold small text-uppercase text-muted mb-3">Step 1: Select Payment Method</label>
                         <div class="row g-2 mb-4">
-                            <div class="col-6">
+                            <!-- Bank of Bhutan (mBoB) -->
+                            <div class="col-6 col-sm-6 col-md-3">
                                 <input type="radio" class="btn-check" name="bank_type" id="bank_bob" value="Bank of Bhutan (mBoB)" checked>
-                                <label class="btn btn-outline-primary w-100 py-2 border-2" for="bank_bob">BoB</label>
+                                <label class="btn btn-outline-primary w-100 p-2 border-2 text-center bank-logo-btn" for="bank_bob">
+                                    <div class="bank-logo-img">
+                                        <img src="{{ asset('images/banks/mbob.jpg') }}" alt="mBoB Logo" class="img-fluid" style="max-height: 40px;">
+                                    </div>
+                                    <small class="bank-name d-block mt-1" style="font-size: 0.7rem;">Bank of Bhutan</small>
+                                </label>
                             </div>
-                            <div class="col-6">
+
+                            <!-- Bhutan National Bank (mPAY) -->
+                            <div class="col-6 col-sm-6 col-md-3">
                                 <input type="radio" class="btn-check" name="bank_type" id="bank_bnb" value="Bhutan National Bank (mPAY)">
-                                <label class="btn btn-outline-primary w-100 py-2 border-2" for="bank_bnb">BNBL</label>
+                                <label class="btn btn-outline-primary w-100 p-2 border-2 text-center bank-logo-btn" for="bank_bnb">
+                                    <div class="bank-logo-img">
+                                        <img src="{{ asset('images/banks/bnb.png') }}" alt="BNB Logo" class="img-fluid" style="max-height: 40px;">
+                                    </div>
+                                    <small class="bank-name d-block mt-1" style="font-size: 0.7rem;">Bhutan National Bank</small>
+                                </label>
                             </div>
-                            <div class="col-6">
-                                <input type="radio" class="btn-check" name="bank_type" id="bank_rma" value="RMA (DK / Wallet)">
-                                <label class="btn btn-outline-primary w-100 py-2 border-2" for="bank_rma">DK (RMA)</label>
-                            </div>
-                            <div class="col-6">
+
+                            <!-- T-Bank (T-Pay) -->
+                            <div class="col-6 col-sm-6 col-md-3">
                                 <input type="radio" class="btn-check" name="bank_type" id="bank_tb" value="T-Bank (T-Pay)">
-                                <label class="btn btn-outline-primary w-100 py-2 border-2" for="bank_tb">T-Bank</label>
+                                <label class="btn btn-outline-primary w-100 p-2 border-2 text-center bank-logo-btn" for="bank_tb">
+                                    <div class="bank-logo-img">
+                                        <img src="{{ asset('images/banks/tbank.png') }}" alt="T-Bank Logo" class="img-fluid" style="max-height: 40px;">
+                                    </div>
+                                    <small class="bank-name d-block mt-1" style="font-size: 0.7rem;">T-Bank</small>
+                                </label>
+                            </div>
+
+                            <!-- DK Wallet (RMA) -->
+                            <div class="col-6 col-sm-6 col-md-3">
+                                <input type="radio" class="btn-check" name="bank_type" id="bank_rma" value="RMA (DK / Wallet)">
+                                <label class="btn btn-outline-primary w-100 p-2 border-2 text-center bank-logo-btn" for="bank_rma">
+                                    <div class="bank-logo-img">
+                                        <img src="{{ asset('images/banks/dk-wallet.png') }}" alt="DK Wallet Logo" class="img-fluid" style="max-height: 40px;">
+                                    </div>
+                                    <small class="bank-name d-block mt-1" style="font-size: 0.7rem;">DK Wallet</small>
+                                </label>
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold small text-uppercase text-muted">2. Enter Bank Account</label>
-                              <input type="text" inputmode="numeric" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="form-control form-control-lg text-center font-monospace bg-light" id="account_number" placeholder="Enter Acc / Wallet No" required>
-                        </div>
-                        <button type="button" class="btn btn-primary btn-lg w-100 rounded-pill" id="requestOtpBtn">
-                            Request OTP <i class="bi bi-arrow-right ms-2"></i>
+                        <button type="button" class="btn btn-primary btn-lg w-100 rounded-pill" id="continueToAccountBtn">
+                            Continue <i class="bi bi-arrow-right ms-2"></i>
                         </button>
                     </div>
 
-                    <!-- Step 2: OTP Verification -->
+                    <!-- Step 2: Enter Account Number -->
                     <div id="step-2" style="display: none;" class="text-start">
+                        <div class="alert alert-info border-0 rounded-3 small py-2 mb-3">
+                            <i class="bi bi-info-circle me-2"></i>Selected Bank: <strong id="selected_bank_display">Bank of Bhutan</strong>
+                        </div>
+
+                        <label class="form-label fw-bold small text-uppercase text-muted mb-3">Step 2: Enter Account Number</label>
+                        <div class="mb-4">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="form-control form-control-lg text-center font-monospace bg-light" id="account_number" placeholder="Enter Acc / Wallet No" required>
+                            <small class="text-muted d-block mt-2">Enter your 16-digit account or wallet number</small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-primary btn-lg rounded-pill" id="requestOtpBtn">
+                                Request OTP <i class="bi bi-arrow-right ms-2"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary rounded-pill" id="backToStep1Btn">
+                                Back
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: OTP Verification -->
+                    <div id="step-3" style="display: none;" class="text-start">
                         <div class="alert alert-success border-0 rounded-3 small py-2 mb-4">
                             <i class="bi bi-check-circle-fill me-2"></i>OTP sent successfully to your mobile number registered with <strong id="selected_bank_name"></strong> for account ending in <strong id="ending_account"></strong>.
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-center d-block small text-uppercase text-muted">Enter 6-Digit OTP</label>
-                            <div class="d-flex justify-content-center gap-2 mb-2" id="otp-container">
-                                <input type="text" class="form-control form-control-lg text-center otp-input border-2 bg-light shadow-none" maxlength="1" style="width: 55px; font-size: 24px;" autofocus>
-                                <input type="text" class="form-control form-control-lg text-center otp-input border-2 bg-light shadow-none" maxlength="1" style="width: 55px; font-size: 24px;">
-                                <input type="text" class="form-control form-control-lg text-center otp-input border-2 bg-light shadow-none" maxlength="1" style="width: 55px; font-size: 24px;">
-                                <input type="text" class="form-control form-control-lg text-center otp-input border-2 bg-light shadow-none" maxlength="1" style="width: 55px; font-size: 24px;">
-                                <input type="text" class="form-control form-control-lg text-center otp-input border-2 bg-light shadow-none" maxlength="1" style="width: 55px; font-size: 24px;">
-                                <input type="text" class="form-control form-control-lg text-center otp-input border-2 bg-light shadow-none" maxlength="1" style="width: 55px; font-size: 24px;">
-                            </div>
-                            <p class="text-center text-muted small"><i class="bi bi-clock-history me-1"></i> OTP expires when the session ends.</p>
+                        <label class="form-label fw-bold small text-uppercase text-muted mb-3">Step 3: Enter 6-Digit OTP</label>
+                        <div class="d-flex justify-content-center gap-2 mb-3" id="otp-container">
+                            <input type="text" class="form-control form-control-lg text-center otp-input border-2 bg-light shadow-none" maxlength="1" style="width: 55px; font-size: 24px;" autofocus>
+                            <input type="text" class="form-control form-control-lg text-center otp-input border-2 bg-light shadow-none" maxlength="1" style="width: 55px; font-size: 24px;">
+                            <input type="text" class="form-control form-control-lg text-center otp-input border-2 bg-light shadow-none" maxlength="1" style="width: 55px; font-size: 24px;">
+                            <input type="text" class="form-control form-control-lg text-center otp-input border-2 bg-light shadow-none" maxlength="1" style="width: 55px; font-size: 24px;">
+                            <input type="text" class="form-control form-control-lg text-center otp-input border-2 bg-light shadow-none" maxlength="1" style="width: 55px; font-size: 24px;">
+                            <input type="text" class="form-control form-control-lg text-center otp-input border-2 bg-light shadow-none" maxlength="1" style="width: 55px; font-size: 24px;">
                         </div>
+                        <p class="text-center text-muted small mb-4"><i class="bi bi-clock-history me-1"></i> OTP expires when the session ends.</p>
 
                         <form action="{{ route('payment.complete', $booking->id) }}" method="POST" id="paymentForm">
                             @csrf
                             <input type="hidden" name="payment_method" id="final_payment_method">
                             <input type="hidden" name="account_last4" id="final_account_last4">
-                            <button type="button" class="btn btn-success btn-lg w-100 rounded-pill" id="payButton" disabled>
-                                <i class="bi bi-lock-fill me-2"></i>Verify & Auto Deduct Nu. {{ number_format($amount, 2) }}
-                            </button>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-success btn-lg rounded-pill" id="payButton" disabled>
+                                    <i class="bi bi-lock-fill me-2"></i>Verify & Auto Deduct Nu. {{ number_format($amount, 2) }}
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary rounded-pill" id="backToStep2Btn">
+                                    Back
+                                </button>
+                            </div>
                         </form>
                     </div>
 
                     <!-- Timeout Form (hidden) -->
                     <form action="{{ route('payment.timeout', $booking->id) }}" method="POST" id="timeoutForm" style="display: none;">
+                        @csrf
+                    </form>
+
+                    <!-- Cancellation Form (hidden) -->
+                    <form action="{{ route('payment.cancel', $booking->id) }}" method="POST" id="cancellationForm" style="display: none;">
                         @csrf
                     </form>
 
@@ -139,6 +192,7 @@
     const timerDisplay = document.getElementById('timer');
     const progressBar = document.getElementById('progressBar');
     const timeoutForm = document.getElementById('timeoutForm');
+    const cancellationForm = document.getElementById('cancellationForm');
     const totalTime = {{ $timeRemaining }};
 
     function formatTime(seconds) {
@@ -170,22 +224,45 @@
             document.querySelectorAll('button').forEach(btn => btn.disabled = true);
             timerDisplay.textContent = '00:00';
             
-            // Auto-submit timeout
+            // Auto-submit timeout form (not cancellation form)
             setTimeout(() => timeoutForm.submit(), 1000);
         }
     }, 1000);
 
     function cancelPayment() {
         clearInterval(countdown);
-        timeoutForm.submit();
+        // Submit cancellation form instead of timeout form
+        cancellationForm.submit();
     }
 
-    // Step 1 to Step 2 transition
+    // Step navigation variables
     const step1 = document.getElementById('step-1');
     const step2 = document.getElementById('step-2');
+    const step3 = document.getElementById('step-3');
+    const continueToAccountBtn = document.getElementById('continueToAccountBtn');
     const requestOtpBtn = document.getElementById('requestOtpBtn');
+    const backToStep1Btn = document.getElementById('backToStep1Btn');
+    const backToStep2Btn = document.getElementById('backToStep2Btn');
     const accountInput = document.getElementById('account_number');
 
+    // Step 1 to Step 2 transition
+    continueToAccountBtn.addEventListener('click', function() {
+        const selectedBank = document.querySelector('input[name="bank_type"]:checked').value;
+        document.getElementById('selected_bank_display').textContent = selectedBank;
+        
+        step1.style.display = 'none';
+        step2.style.display = 'block';
+        accountInput.focus();
+    });
+
+    // Back from Step 2 to Step 1
+    backToStep1Btn.addEventListener('click', function() {
+        accountInput.value = '';
+        step2.style.display = 'none';
+        step1.style.display = 'block';
+    });
+
+    // Step 2 to Step 3 transition
     requestOtpBtn.addEventListener('click', function() {
         const accNo = accountInput.value.trim();
         if (accNo.length < 5) {
@@ -201,15 +278,26 @@
         document.getElementById('final_payment_method').value = selectedBank;
         document.getElementById('final_account_last4').value = last4;
 
-        // Animate simulation
+        // Animate loading
         const originalText = requestOtpBtn.innerHTML;
         requestOtpBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Connecting to RMA...';
         requestOtpBtn.disabled = true;
 
         setTimeout(() => {
-            step1.style.display = 'none';
-            step2.style.display = 'block';
+            requestOtpBtn.innerHTML = originalText;
+            requestOtpBtn.disabled = false;
+            step2.style.display = 'none';
+            step3.style.display = 'block';
+            document.querySelector('.otp-input').focus();
         }, 1500);
+    });
+
+    // Back from Step 3 to Step 2
+    backToStep2Btn.addEventListener('click', function() {
+        document.querySelectorAll('.otp-input').forEach(input => input.value = '');
+        step3.style.display = 'none';
+        step2.style.display = 'block';
+        accountInput.focus();
     });
 
     // OTP Input logic

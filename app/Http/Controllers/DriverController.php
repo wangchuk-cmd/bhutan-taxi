@@ -229,6 +229,7 @@ class DriverController extends Controller
             'name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20|regex:/^[0-9]+$/|unique:users,phone_number,' . $user->id,
             'vehicle_type' => 'required|string|max:50',
+            'fuel_type' => 'required|in:Fuel,Electric',
         ], [
             'phone_number.regex' => 'Phone number must contain only digits.',
         ]);
@@ -240,6 +241,7 @@ class DriverController extends Controller
 
         $driver->update([
             'vehicle_type' => $validated['vehicle_type'],
+            'fuel_type' => $validated['fuel_type'],
         ]);
 
         return back()->with('success', 'Profile updated successfully!');

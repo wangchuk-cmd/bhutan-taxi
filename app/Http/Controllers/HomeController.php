@@ -35,37 +35,47 @@ class HomeController extends Controller
     public function search(Request $request)
     {
         $validated = $request->validate([
-            'from' => 'required|string',
-            'to' => 'required|string',
+            'from' => 'nullable|string',
+            'to' => 'nullable|string',
             'date' => 'required|date',
         ]);
 
-        $from = trim($validated['from']);
-        $to = trim($validated['to']);
+        $from = trim($validated['from'] ?? '');
+        $to = trim($validated['to'] ?? '');
         $date = $validated['date'];
 
-        // Cache search results for 5 minutes per search query
+        // Build cache key
         $cacheKey = 'trip_search_' . md5($from . $to . $date);
-        $trips = Cache::remember($cacheKey, 300, function () use ($from, $to, $date) {
-            return Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
-                               'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
-                ->with(['driver:id,user_id', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
-                ->whereRaw('LOWER(TRIM(origin_dzongkhag)) = ?', [strtolower($from)])
-                ->whereRaw('LOWER(TRIM(destination_dzongkhag)) = ?', [strtolower($to)])
-                ->active()
-                ->whereDate('departure_datetime', $date)
-                ->where('available_seats', '>', 0)
-                ->orderBy('departure_datetime')
-                ->get();
+        
+        $query = Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
+                           'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
+            ->with(['driver:id,user_id', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
+            ->active()
+            ->whereDate('departure_datetime', $date)
+            ->where('available_seats', '>', 0);
+
+        // Apply filters only if provided (for "View All" functionality)
+        if (!empty($from)) {
+            $query->whereRaw('LOWER(TRIM(origin_dzongkhag)) = ?', [strtolower($from)]);
+        }
+        if (!empty($to)) {
+            $query->whereRaw('LOWER(TRIM(destination_dzongkhag)) = ?', [strtolower($to)]);
+        }
+
+        $trips = Cache::remember($cacheKey, 300, function () use ($query) {
+            return $query->orderBy('departure_datetime')->get();
         });
 
-        // Get route info if available for distance/time
-        $route = Cache::remember('route_' . md5($from . $to), 86400, function () use ($from, $to) {
-            return Route::select(['id', 'origin_dzongkhag', 'destination_dzongkhag', 'distance_km', 'estimated_time'])
-                ->whereRaw('LOWER(TRIM(origin_dzongkhag)) = ?', [strtolower($from)])
-                ->whereRaw('LOWER(TRIM(destination_dzongkhag)) = ?', [strtolower($to)])
-                ->first();
-        });
+        // Get route info if available for distance/time (only if both from and to are provided)
+        $route = null;
+        if (!empty($from) && !empty($to)) {
+            $route = Cache::remember('route_' . md5($from . $to), 86400, function () use ($from, $to) {
+                return Route::select(['id', 'origin_dzongkhag', 'destination_dzongkhag', 'distance_km', 'estimated_time'])
+                    ->whereRaw('LOWER(TRIM(origin_dzongkhag)) = ?', [strtolower($from)])
+                    ->whereRaw('LOWER(TRIM(destination_dzongkhag)) = ?', [strtolower($to)])
+                    ->first();
+            });
+        }
 
         $dzongkhags = Cache::remember('dzongkhags.list', 86400, function () {
             return config('dzongkhags.list');

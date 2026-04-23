@@ -15,8 +15,7 @@
                            data-dzongkhag-autocomplete
                            data-exclude-input="#results-to"
                            data-next-input="#results-to"
-                           value="{{ $validated['from'] ?? '' }}"
-                           required>
+                           value="{{ $validated['from'] ?? '' }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">To</label>
@@ -25,8 +24,7 @@
                            data-dzongkhag-autocomplete
                            data-exclude-input="#results-from"
                            data-next-input="#passenger-results-search-date"
-                           value="{{ $validated['to'] ?? '' }}"
-                           required>
+                           value="{{ $validated['to'] ?? '' }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Date</label>

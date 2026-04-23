@@ -204,6 +204,14 @@
                     </select>
                 </div>
 
+                <div class="form-group">
+                    <label class="form-label">Fuel Type</label>
+                    <select name="fuel_type" class="form-select" required>
+                        <option value="Fuel" {{ $driver->fuel_type === 'Fuel' ? 'selected' : '' }}>Fuel Car (Petrol/Diesel)</option>
+                        <option value="Electric" {{ $driver->fuel_type === 'Electric' ? 'selected' : '' }}>Electric Vehicle</option>
+                    </select>
+                </div>
+
                 <button type="submit" class="submit-button">
                     <i class="bi bi-check-circle"></i>Update Profile
                 </button>

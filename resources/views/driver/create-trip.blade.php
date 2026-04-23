@@ -165,7 +165,9 @@
                 <div class="col-md-4 mb-3">
                     <label class="form-label fw-bold">Price per Seat (Nu.)</label>
                     <input type="number" name="price_per_seat" class="form-control" 
-                           value="{{ old('price_per_seat') }}" min="0" step="0.01" required>
+                           placeholder="Enter numbers only" inputmode="numeric"
+                           value="{{ old('price_per_seat') }}" min="0" max="999999" step="1" required>
+                    <small class="text-muted">Numbers only</small>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label fw-bold">Full Taxi Price (Nu.)</label>

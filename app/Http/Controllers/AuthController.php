@@ -88,6 +88,7 @@ class AuthController extends Controller
             'license_number' => 'required|string|max:50|unique:drivers',
             'taxi_plate_number' => 'required|string|max:50|unique:drivers',
             'vehicle_type' => 'required|string|max:50',
+            'fuel_type' => 'required|in:Fuel,Electric',
         ], [
             'phone_number.regex' => 'Phone number must contain only digits.',
         ]);
@@ -105,6 +106,7 @@ class AuthController extends Controller
             'license_number' => $validated['license_number'],
             'taxi_plate_number' => $validated['taxi_plate_number'],
             'vehicle_type' => $validated['vehicle_type'],
+            'fuel_type' => $validated['fuel_type'],
             'verified' => false,
             'active' => true,
         ]);

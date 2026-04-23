@@ -118,7 +118,7 @@
                 <span class="section-eyebrow">Available Now</span>
                 <h2 class="section-title mb-0">Upcoming Trips</h2>
             </div>
-            <a href="{{ route('search') }}" class="btn btn-outline-primary btn-sm view-all-btn">
+            <a href="/search?date={{ date('Y-m-d') }}" class="btn btn-outline-primary btn-sm view-all-btn">
                 View All <i class="bi bi-arrow-right ms-1"></i>
             </a>
         </div>

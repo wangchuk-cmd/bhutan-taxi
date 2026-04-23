@@ -79,7 +79,7 @@
                                 <i class="bi bi-car-front text-success me-3 fs-4"></i>
                                 <div>
                                     <small class="text-muted d-block">Vehicle</small>
-                                    <strong>{{ $trip->driver->vehicle_type }}</strong>
+                                    <strong>{{ $trip->driver->vehicle_type }} ({{ $trip->driver->fuel_type === 'Electric' ? '⚡ Electric' : '🛢️ Fuel' }})</strong>
                                 </div>
                             </div>
                             <div class="d-flex">

@@ -33,7 +33,7 @@
                             </div>
                             <div class="trip-info-item">
                                 <i class="bi bi-car-front text-primary"></i>
-                                <span>{{ $trip->driver->vehicle_type }} · {{ $trip->driver->taxi_plate_number }}</span>
+                                <span>{{ $trip->driver->vehicle_type }} · {{ $trip->driver->fuel_type === 'Electric' ? '⚡ Electric' : '🛢️ Fuel' }}</span>
                             </div>
                         </div>
 

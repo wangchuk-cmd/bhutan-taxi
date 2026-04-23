@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
     // Payments
     Route::get('/payment/{bookingId}', [PaymentController::class, 'process'])->name('payment.process');
     Route::post('/payment/{bookingId}/complete', [PaymentController::class, 'complete'])->name('payment.complete');
+    Route::post('/payment/{bookingId}/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
     Route::post('/payment/{bookingId}/timeout', [PaymentController::class, 'timeout'])->name('payment.timeout');
 
     // Notifications

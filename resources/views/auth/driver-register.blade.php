@@ -80,6 +80,15 @@
                             </select>
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">Fuel Type</label>
+                            <select name="fuel_type" class="form-select" required>
+                                <option value="">Select fuel type</option>
+                                <option value="Fuel" {{ old('fuel_type') == 'Fuel' ? 'selected' : '' }}>Fuel Car (Petrol/Diesel)</option>
+                                <option value="Electric" {{ old('fuel_type') == 'Electric' ? 'selected' : '' }}>Electric Vehicle</option>
+                            </select>
+                        </div>
+
                         <hr class="my-4">
                         
                         <h5 class="mb-3 text-primary"><i class="bi bi-lock me-2"></i>Account Security</h5>

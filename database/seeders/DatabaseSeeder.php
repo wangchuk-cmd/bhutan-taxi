@@ -41,6 +41,7 @@ class DatabaseSeeder extends Seeder
             'license_number' => 'DL-2024-001',
             'taxi_plate_number' => 'BP-1-A-1234',
             'vehicle_type' => 'Sedan',
+            'fuel_type' => 'Fuel',
             'verified' => true,
             'active' => true,
         ]);

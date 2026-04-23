@@ -10,7 +10,7 @@
     @if($bookings->count() > 0)
         <div class="row g-2">
             @foreach($bookings as $booking)
-                <div class="col-12 col-md-6">
+                <div class="col-6 col-md-12">
                     <div class="booking-card {{ $booking->status === 'cancelled' ? 'booking-card-cancelled' : 'booking-card-active' }}">
                         <div class="booking-card-header">
                             <div class="booking-route">

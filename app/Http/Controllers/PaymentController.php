@@ -143,4 +143,20 @@ class PaymentController extends Controller
 
         return redirect()->route('home')->with('error', 'Payment timeout. Please try booking again.');
     }
+
+    public function cancel($bookingId)
+    {
+        $booking = Booking::where('passenger_id', Auth::id())
+            ->where('payment_status', 'pending')
+            ->find($bookingId);
+
+        if ($booking) {
+            $booking->update([
+                'payment_status' => 'failed',
+                'status' => 'cancelled',
+            ]);
+        }
+
+        return redirect()->route('home')->with('info', 'Payment cancelled. Your transaction has been cancelled.');
+    }
 }

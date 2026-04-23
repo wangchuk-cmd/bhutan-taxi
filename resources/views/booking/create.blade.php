@@ -164,7 +164,7 @@
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted"><i class="bi bi-car-front me-2"></i>Vehicle</span>
-                            <span>{{ $trip->driver->vehicle_type }}</span>
+                            <span>{{ $trip->driver->vehicle_type }} ({{ $trip->driver->fuel_type === 'Electric' ? '⚡ Electric' : '🛢️ Fuel' }})</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted"><i class="bi bi-123 me-2"></i>Plate</span>
