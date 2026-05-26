@@ -71,7 +71,21 @@
                                             <td class="fw-bold py-0">{{ $booking->trip->driver->user->name }}</td>
                                         </tr>
                                         <tr>
-                                            <td class="text-muted py-0">Vehicle:</td>
+                                            <td class="text-muted py-0">Vehicle Type:</td>
+                                            <td class="fw-bold py-0">{{ $booking->trip->driver->vehicle_type }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted py-0">Fuel Type:</td>
+                                            <td class="fw-bold py-0">
+                                                @if($booking->trip->driver->fuel_type === 'Electric')
+                                                    <i class="bi bi-lightning-charge" style="color: #0dcaf0;"></i> Electric
+                                                @else
+                                                    <i class="bi bi-fuel-pump" style="color: #fd7e14;"></i> Fuel
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted py-0">Plate No:</td>
                                             <td class="fw-bold py-0">{{ $booking->trip->driver->taxi_plate_number ?? $booking->trip->driver->vehicle_number ?? 'N/A' }}</td>
                                         </tr>
                                     </table>
@@ -171,13 +185,53 @@
                             </p>
                             <p class="mb-0 text-muted">
                                 <i class="bi bi-envelope me-1"></i>support@bhutantaxi.bt |
-                                <i class="bi bi-telephone me-1"></i>+975-2-123456
+                                <i class="bi bi-telephone me-1"></i>+975-17832648
                             </p>
                             <p class="mt-1 mb-0 text-muted small">Generated: {{ now()->format('M d, Y h:i A') }}</p>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Rating Section -->
+            @if(!$booking->rating)
+                <div class="card mt-4 border-warning">
+                    <div class="card-header bg-light border-bottom border-warning">
+                        <h5 class="mb-0">
+                            <i class="bi bi-star-fill text-warning me-2"></i>Rate Your Driver
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">
+                            <i class="bi bi-info-circle me-2"></i>Help us improve our service by rating your driver and sharing your experience.
+                        </p>
+                        <a href="{{ route('rating.show', $booking->id) }}" class="btn btn-warning">
+                            <i class="bi bi-star-fill me-2"></i>Rate Driver
+                        </a>
+                    </div>
+                </div>
+            @else
+                <div class="card mt-4 border-success">
+                    <div class="card-header bg-light border-bottom border-success">
+                        <h5 class="mb-0">
+                            <i class="bi bi-star-fill text-success me-2"></i>Your Rating
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong class="fs-5">{{ str_repeat('⭐', $booking->rating->rating) }} {{ $booking->rating->rating }}/5 Stars</strong>
+                        </div>
+                        @if($booking->rating->review)
+                            <p class="text-muted mb-0"><em>{{ $booking->rating->review }}</em></p>
+                        @endif
+                        <div class="mt-3">
+                            <a href="{{ route('rating.show', $booking->id) }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-pencil me-1"></i>Update Rating
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </div>

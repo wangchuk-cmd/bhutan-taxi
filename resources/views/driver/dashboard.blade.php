@@ -87,7 +87,7 @@
     /* Stats Grid */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 20px;
         margin-bottom: 40px;
     }
@@ -95,7 +95,7 @@
     .stat-card-modern {
         background: white;
         border-radius: 12px;
-        padding: 24px;
+        padding: 20px;
         box-shadow: var(--card-shadow);
         transition: all 0.3s ease;
         border: 1px solid #f0f0f0;
@@ -124,21 +124,100 @@
     }
 
     .stat-value {
-        font-size: 32px;
+        font-size: clamp(1.6rem, 5vw, 2rem);
         font-weight: 700;
         color: var(--text-dark);
         margin: 0;
     }
 
     .stat-icon-wrapper {
-        width: 56px;
-        height: 56px;
+        width: 52px;
+        height: 52px;
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 28px;
+        font-size: 24px;
         flex-shrink: 0;
+    }
+
+    @media (min-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .dashboard-header {
+            margin-bottom: 20px;
+            gap: 12px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 22px;
+        }
+
+        .dashboard-header p {
+            font-size: 13px;
+        }
+
+        .create-btn {
+            padding: 10px 14px;
+            font-size: 13px;
+        }
+
+        .stats-grid {
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card-modern {
+            padding: 14px;
+            border-radius: 14px;
+            min-height: 110px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .stat-icon-wrapper {
+            width: 44px;
+            height: 44px;
+            font-size: 20px;
+            border-radius: 10px;
+        }
+
+        .upcoming-trips-wrap > div:first-child {
+            padding: 16px !important;
+        }
+
+        .upcoming-trips-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+        }
+
+        .upcoming-trip-card {
+            padding: 12px !important;
+            border-radius: 12px !important;
+        }
+
+        .upcoming-trip-card [style*="font-size: 16px"] {
+            font-size: 13px !important;
+        }
+
+        .trip-meta-grid {
+            grid-template-columns: 1fr !important;
+            gap: 8px !important;
+            margin-bottom: 12px !important;
+            padding-bottom: 12px !important;
+        }
+
+        .upcoming-trip-card a {
+            padding: 9px 12px !important;
+            font-size: 12px !important;
+        }
     }
 
     .stat-icon-wrapper.primary { background: #dbeafe; color: var(--primary-color); }
@@ -224,9 +303,9 @@
 
     <div style="padding: 24px;">
         @if($upcomingTrips->count() > 0)
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+            <div class="upcoming-trips-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
                 @foreach($upcomingTrips as $trip)
-                    <div style="background: var(--bg-light); border-radius: 10px; padding: 20px; border: 1px solid #e5e7eb; transition: all 0.3s ease;">
+                    <div class="upcoming-trip-card" style="background: var(--bg-light); border-radius: 10px; padding: 20px; border: 1px solid #e5e7eb; transition: all 0.3s ease;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
                             <div>
                                 <div style="font-size: 13px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Route</div>
@@ -241,7 +320,7 @@
                             </span>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                        <div class="trip-meta-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
                             <div>
                                 <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">Date</div>
                                 <div style="font-size: 13px; font-weight: 500; color: var(--text-dark);">{{ $trip->departure_datetime->format('M d, Y') }}</div>

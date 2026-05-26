@@ -34,6 +34,18 @@
                                 <span class="text-dark">{{ $booking->trip->departure_datetime->format('M d, Y h:i A') }}</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Vehicle Type</span>
+                                <span class="text-dark">{{ $booking->trip->driver->vehicle_type }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Fuel Type</span>
+                                @if($booking->trip->driver->fuel_type === 'Electric')
+                                    <span class="text-dark"><i class="bi bi-lightning-charge" style="color: #0dcaf0;"></i> <strong>Electric</strong></span>
+                                @else
+                                    <span class="text-dark"><i class="bi bi-fuel-pump" style="color: #fd7e14;"></i> <strong>Fuel</strong></span>
+                                @endif
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Seats</span>
                                 <span class="text-dark">{{ $booking->seats_booked }}</span>
                             </div>

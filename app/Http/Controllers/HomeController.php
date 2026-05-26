@@ -11,14 +11,14 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // Cache featured trips for 10 minutes
+        // Cache featured trips for 10 minutes, showing trips for next 7 days
         $cacheKey = 'featured_trips_' . now()->format('Y-m-d_H_i');
         $featuredTrips = Cache::remember($cacheKey, 600, function () {
             return Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
                                'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
-                ->with(['driver:id,user_id', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
+                ->with(['driver:id,user_id,vehicle_type,fuel_type,average_rating,rating_count', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
                 ->active()
-                ->upcoming()
+                ->whereBetween('departure_datetime', [now(), now()->addDays(7)])
                 ->where('available_seats', '>', 0)
                 ->orderBy('departure_datetime')
                 ->take(6)
@@ -30,6 +30,47 @@ class HomeController extends Controller
         });
 
         return view('home', compact('dzongkhags', 'featuredTrips'));
+    }
+
+    public function viewAll(Request $request)
+    {
+        // View all available trips from today onwards with optional date filtering
+        $from = trim($request->get('from', ''));
+        $to = trim($request->get('to', ''));
+        $filterDate = $request->get('filter_date', ''); // Optional specific date filter
+        
+        $startDate = now()->toDateString();
+        
+        // No caching for viewAll - fetch fresh data every time
+        $query = Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
+                           'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
+            ->with(['driver:id,user_id,vehicle_type,fuel_type,average_rating,rating_count', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
+            ->active()
+            ->where('available_seats', '>', 0);
+
+        // Date filtering - if specific date is provided, show only that date; otherwise show from today onwards
+        if (!empty($filterDate)) {
+            $query->whereDate('departure_datetime', $filterDate);
+        } else {
+            $query->where('departure_datetime', '>=', $startDate);
+        }
+
+        // Apply location filters if provided
+        if (!empty($from)) {
+            $query->whereRaw('LOWER(TRIM(origin_dzongkhag)) = ?', [strtolower($from)]);
+        }
+        if (!empty($to)) {
+            $query->whereRaw('LOWER(TRIM(destination_dzongkhag)) = ?', [strtolower($to)]);
+        }
+
+        // Order by departure time and get all matching trips (no limit)
+        $trips = $query->orderBy('departure_datetime')->get();
+
+        $dzongkhags = Cache::remember('dzongkhags.list', 86400, function () {
+            return config('dzongkhags.list');
+        });
+
+        return view('all-trips', compact('trips', 'dzongkhags', 'startDate', 'from', 'to', 'filterDate'));
     }
 
     public function search(Request $request)
@@ -49,7 +90,7 @@ class HomeController extends Controller
         
         $query = Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
                            'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
-            ->with(['driver:id,user_id', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
+            ->with(['driver:id,user_id,vehicle_type,fuel_type,average_rating,rating_count', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
             ->active()
             ->whereDate('departure_datetime', $date)
             ->where('available_seats', '>', 0);
@@ -90,7 +131,7 @@ class HomeController extends Controller
         $trip = Cache::remember('trip_' . $id, 600, function () use ($id) {
             return Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
                                'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
-                ->with(['driver:id,user_id', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time', 'bookings:id,trip_id,passenger_id'])
+                ->with(['driver:id,user_id,vehicle_type,fuel_type,average_rating,rating_count', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time', 'bookings:id,trip_id,passenger_id'])
                 ->findOrFail($id);
         });
 
@@ -117,7 +158,7 @@ class HomeController extends Controller
         $trips = Cache::remember($cacheKey, 180, function () use ($from, $to, $date) {
             return Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
                                'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
-                ->with(['driver:id,user_id', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
+                ->with(['driver:id,user_id,vehicle_type,fuel_type,average_rating,rating_count', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
                 ->whereRaw('LOWER(TRIM(origin_dzongkhag)) = ?', [strtolower($from)])
                 ->whereRaw('LOWER(TRIM(destination_dzongkhag)) = ?', [strtolower($to)])
                 ->active()

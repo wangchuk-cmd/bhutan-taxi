@@ -8,8 +8,10 @@ use App\Models\Booking;
 use App\Models\Payout;
 use App\Models\Notification;
 use App\Models\Complaint;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class DriverController extends Controller
 {
@@ -63,8 +65,13 @@ class DriverController extends Controller
         }
 
         $locations = config('dzongkhags.list');
+        $routes = Route::select(['id', 'origin_dzongkhag', 'destination_dzongkhag', 'distance_km', 'estimated_time'])
+            ->orderBy('origin_dzongkhag')
+            ->orderBy('destination_dzongkhag')
+            ->get();
+        $routeData = $this->buildBidirectionalRouteData($routes);
         
-        return view('driver.create-trip', compact('locations'));
+        return view('driver.create-trip', compact('locations', 'routes', 'routeData'));
     }
 
     public function storeTrip(Request $request)
@@ -86,17 +93,38 @@ class DriverController extends Controller
             'full_taxi_price' => 'required|numeric|min:0',
         ]);
 
+        $departureDatetime = Carbon::parse($validated['departure_datetime'])->format('Y-m-d H:i:s');
+
+        $existingTrip = $this->findBlockingActiveTrip(
+            $driver->id,
+            $departureDatetime,
+            $validated['origin_dzongkhag'],
+            $validated['destination_dzongkhag']
+        );
+
+        if ($existingTrip) {
+            return back()
+                ->withErrors([
+                    'departure_datetime' => 'You already have an active trip that is still in progress. Please complete or cancel the current trip before creating another one.',
+                ])
+                ->withInput();
+        }
+
         // Find or create matching route
-        $route = Route::where('origin_dzongkhag', $validated['origin_dzongkhag'])
-            ->where('destination_dzongkhag', $validated['destination_dzongkhag'])
-            ->first();
+        $route = Route::findBetweenDzongkhags($validated['origin_dzongkhag'], $validated['destination_dzongkhag']);
+
+        if (!$route) {
+            return back()->withErrors([
+                'destination_dzongkhag' => 'This route is not set by admin yet. Please choose an available admin route so km and estimated time can be calculated.',
+            ])->withInput();
+        }
 
         Trip::create([
             'driver_id' => $driver->id,
             'route_id' => $route?->id,
             'origin_dzongkhag' => $validated['origin_dzongkhag'],
             'destination_dzongkhag' => $validated['destination_dzongkhag'],
-            'departure_datetime' => $validated['departure_datetime'],
+            'departure_datetime' => $departureDatetime,
             'total_seats' => $validated['total_seats'],
             'available_seats' => $validated['total_seats'],
             'price_per_seat' => $validated['price_per_seat'],
@@ -110,10 +138,15 @@ class DriverController extends Controller
     public function editTrip($id)
     {
         $driver = Auth::user()->driver;
-        $trip = Trip::where('driver_id', $driver->id)->findOrFail($id);
+        $trip = Trip::with('route')->where('driver_id', $driver->id)->findOrFail($id);
         $locations = config('dzongkhags.list');
+        $routes = Route::select(['id', 'origin_dzongkhag', 'destination_dzongkhag', 'distance_km', 'estimated_time'])
+            ->orderBy('origin_dzongkhag')
+            ->orderBy('destination_dzongkhag')
+            ->get();
+        $routeData = $this->buildBidirectionalRouteData($routes);
 
-        return view('driver.edit-trip', compact('trip', 'locations'));
+        return view('driver.edit-trip', compact('trip', 'locations', 'routes', 'routeData'));
     }
 
     public function updateTrip(Request $request, $id)
@@ -131,10 +164,32 @@ class DriverController extends Controller
             'full_taxi_price' => 'required|numeric|min:0',
         ]);
 
+        $departureDatetime = Carbon::parse($validated['departure_datetime'])->format('Y-m-d H:i:s');
+
+        $existingTrip = $this->findBlockingActiveTrip(
+            $driver->id,
+            $departureDatetime,
+            $validated['origin_dzongkhag'],
+            $validated['destination_dzongkhag'],
+            $trip->id
+        );
+
+        if ($existingTrip) {
+            return back()
+                ->withErrors([
+                    'departure_datetime' => 'You already have another active trip that is still in progress. Please choose a later schedule or complete the existing trip first.',
+                ])
+                ->withInput();
+        }
+
         // Find matching route
-        $route = Route::where('origin_dzongkhag', $validated['origin_dzongkhag'])
-            ->where('destination_dzongkhag', $validated['destination_dzongkhag'])
-            ->first();
+        $route = Route::findBetweenDzongkhags($validated['origin_dzongkhag'], $validated['destination_dzongkhag']);
+
+        if (!$route) {
+            return back()->withErrors([
+                'destination_dzongkhag' => 'This route is not set by admin yet. Please choose an available admin route so km and estimated time can be calculated.',
+            ])->withInput();
+        }
 
         $bookedSeats = $trip->total_seats - $trip->available_seats;
         $newAvailableSeats = $validated['total_seats'] - $bookedSeats;
@@ -143,7 +198,7 @@ class DriverController extends Controller
             'route_id' => $route?->id,
             'origin_dzongkhag' => $validated['origin_dzongkhag'],
             'destination_dzongkhag' => $validated['destination_dzongkhag'],
-            'departure_datetime' => $validated['departure_datetime'],
+            'departure_datetime' => $departureDatetime,
             'total_seats' => $validated['total_seats'],
             'available_seats' => $newAvailableSeats,
             'price_per_seat' => $validated['price_per_seat'],
@@ -151,6 +206,55 @@ class DriverController extends Controller
         ]);
 
         return redirect()->route('driver.trips')->with('success', 'Trip updated successfully!');
+    }
+
+    private function buildBidirectionalRouteData($routes): array
+    {
+        return $routes
+            ->flatMap(function ($route) {
+                return [
+                    [
+                        'origin' => $route->origin_dzongkhag,
+                        'destination' => $route->destination_dzongkhag,
+                        'distance_km' => $route->distance_km,
+                        'estimated_time' => $route->estimated_time,
+                    ],
+                    [
+                        'origin' => $route->destination_dzongkhag,
+                        'destination' => $route->origin_dzongkhag,
+                        'distance_km' => $route->distance_km,
+                        'estimated_time' => $route->estimated_time,
+                    ],
+                ];
+            })
+            ->unique(fn ($item) => strtolower(trim($item['origin'])) . '|' . strtolower(trim($item['destination'])))
+            ->values()
+            ->all();
+    }
+
+    private function findBlockingActiveTrip(int $driverId, string $newDepartureDatetime, string $origin, string $destination, ?int $ignoreTripId = null): ?Trip
+    {
+        $candidateTrips = Trip::with('route')
+            ->where('driver_id', $driverId)
+            ->where('status', 'active')
+            ->when($ignoreTripId, fn ($query) => $query->where('id', '!=', $ignoreTripId))
+            ->orderBy('departure_datetime')
+            ->get();
+
+        $newDeparture = Carbon::parse($newDepartureDatetime);
+
+        foreach ($candidateTrips as $candidateTrip) {
+            $candidateEnd = $candidateTrip->estimated_arrival_at;
+            if (!$candidateEnd) {
+                continue;
+            }
+
+            if ($newDeparture->lessThanOrEqualTo($candidateEnd)) {
+                return $candidateTrip;
+            }
+        }
+
+        return null;
     }
 
     public function cancelTrip($id)
@@ -228,16 +332,27 @@ class DriverController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20|regex:/^[0-9]+$/|unique:users,phone_number,' . $user->id,
+            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'vehicle_type' => 'required|string|max:50',
             'fuel_type' => 'required|in:Fuel,Electric',
         ], [
             'phone_number.regex' => 'Phone number must contain only digits.',
         ]);
 
-        $user->update([
+        $userData = [
             'name' => $validated['name'],
             'phone_number' => $validated['phone_number'],
-        ]);
+        ];
+
+        if ($request->hasFile('profile_image')) {
+            if (!empty($user->profile_image)) {
+                Storage::disk('public')->delete($user->profile_image);
+            }
+
+            $userData['profile_image'] = $request->file('profile_image')->store('profile-images', 'public');
+        }
+
+        $user->update($userData);
 
         $driver->update([
             'vehicle_type' => $validated['vehicle_type'],

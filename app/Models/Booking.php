@@ -42,6 +42,11 @@ class Booking extends Model
         return $this->hasOne(Payment::class);
     }
 
+    public function rating()
+    {
+        return $this->hasOne(Rating::class);
+    }
+
     /**
      * Get the primary passenger name from passengers_info
      */

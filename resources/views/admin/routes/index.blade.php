@@ -6,23 +6,56 @@
 @include('components.confirm-modal')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0"><i class="bi bi-signpost-2 me-2"></i>Routes Management</h4>
-    <a href="{{ route('admin.routes.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-2"></i>Add Route
-    </a>
+    <div class="d-flex gap-2">
+        <form action="{{ route('admin.routes.generateAll') }}" method="POST" class="d-inline">
+            @csrf
+            <button type="submit" class="btn btn-outline-success">
+                <i class="bi bi-diagram-3 me-2"></i>Generate All Route Estimates
+            </button>
+        </form>
+        <a href="{{ route('admin.routes.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Add Route
+        </a>
+    </div>
 </div>
 
 @php
     $dzongkhags = config('dzongkhags.list');
     // Build a map of existing routes for quick lookup
-    $existingRoutes = collect($routes->items())->mapWithKeys(function($r) {
-        return [strtolower(trim($r->origin_dzongkhag)).'|'.strtolower(trim($r->destination_dzongkhag)) => $r];
+    $routesCollection = collect($routes);
+    $existingRoutes = $routesCollection->flatMap(function($r) {
+        $forwardKey = strtolower(trim($r->origin_dzongkhag)).'|'.strtolower(trim($r->destination_dzongkhag));
+        $reverseKey = strtolower(trim($r->destination_dzongkhag)).'|'.strtolower(trim($r->origin_dzongkhag));
+
+        return [
+            $forwardKey => $r,
+            $reverseKey => $r,
+        ];
     });
+    $routeSuggestions = $routeOrigins ?? $routesCollection->pluck('origin_dzongkhag')->unique()->values();
 @endphp
 
 <div class="card">
     <div class="card-body">
+        <div class="row g-2 align-items-center mb-3">
+            <div class="col-md-6">
+                <label for="route-search" class="form-label fw-bold mb-1">Quick Search</label>
+                <input type="text" id="route-search" class="form-control" placeholder="Type origin dzongkhag..." list="route-search-options" autocomplete="off">
+                <datalist id="route-search-options">
+                    @foreach($routeSuggestions as $suggestion)
+                        <option value="{{ $suggestion }}"></option>
+                    @endforeach
+                </datalist>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="small text-muted mt-4 mt-md-0">
+                    Type the first letter of a dzongkhag to quickly filter routes and open edit.
+                </div>
+            </div>
+        </div>
+
         <div class="table-responsive">
-            <table class="table table-hover align-middle table-sm">
+            <table class="table table-hover align-middle table-sm" id="routes-table">
                 <thead>
                     <tr>
                         <th>Origin</th>
@@ -40,12 +73,13 @@
                             @php
                                 $key = strtolower(trim($from)).'|'.strtolower(trim($to));
                                 $route = $existingRoutes[$key] ?? null;
+                                $searchText = strtolower(trim($from));
                             @endphp
-                            <tr @if($route) class="table-success" @else class="table-warning" @endif>
+                            <tr class="route-row @if($route) table-success @else table-warning @endif" data-route-text="{{ $searchText }}">
                                 <td><strong>{{ $from }}</strong></td>
                                 <td>{{ $to }}</td>
-                                <td>{{ $route ? ($route->distance_km . ' km') : '-' }}</td>
-                                <td>{{ $route ? $route->estimated_time : '-' }}</td>
+                                <td>{{ $route ? $route->formatted_distance_km : '-' }}</td>
+                                <td>{{ $route ? $route->formatted_estimated_time : '-' }}</td>
                                 <td>{!! $route ? '<span class="badge bg-primary">'.$route->trips_count.'</span>' : '<span class="badge bg-secondary">0</span>' !!}</td>
                                 <td class="d-flex gap-1">
                                     @if($route)
@@ -79,4 +113,41 @@
         <div class="small text-muted mt-2">Green = available in system, Yellow = not yet added. You can add, edit, or delete routes directly here.</div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('route-search');
+    const rows = Array.from(document.querySelectorAll('#routes-table tbody .route-row'));
+
+    function filterRoutes() {
+        const query = (searchInput.value || '').trim().toLowerCase();
+        let visibleCount = 0;
+
+        rows.forEach((row) => {
+            const text = row.getAttribute('data-route-text') || '';
+            const isVisible = !query || text.startsWith(query);
+            row.style.display = isVisible ? '' : 'none';
+            if (isVisible) visibleCount++;
+        });
+
+        const emptyStateId = 'routes-empty-state';
+        let emptyState = document.getElementById(emptyStateId);
+
+        if (!emptyState) {
+            emptyState = document.createElement('div');
+            emptyState.id = emptyStateId;
+            emptyState.className = 'alert alert-info mt-3 d-none';
+            emptyState.textContent = 'No routes match your search.';
+            document.querySelector('.card-body').appendChild(emptyState);
+        }
+
+        emptyState.classList.toggle('d-none', visibleCount !== 0);
+    }
+
+    searchInput.addEventListener('input', filterRoutes);
+    filterRoutes();
+});
+</script>
+@endpush
 @endsection

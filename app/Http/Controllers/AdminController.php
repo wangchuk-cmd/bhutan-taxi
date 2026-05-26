@@ -12,6 +12,7 @@ use App\Models\Payout;
 use App\Models\Complaint;
 use App\Models\Notification;
 use App\Models\Setting;
+use App\Services\DzongkhagRouteEstimator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -216,8 +217,13 @@ class AdminController extends Controller
     // Route Management
     public function routes()
     {
-        $routes = Route::withCount('trips')->orderBy('origin_dzongkhag')->paginate(15);
-        return view('admin.routes.index', compact('routes'));
+        $routes = Route::withCount('trips')
+            ->orderBy('origin_dzongkhag')
+            ->orderBy('destination_dzongkhag')
+            ->get();
+        $routeOrigins = collect(config('dzongkhags.list', []));
+
+        return view('admin.routes.index', compact('routes', 'routeOrigins'));
     }
 
     public function createRoute()
@@ -234,6 +240,13 @@ class AdminController extends Controller
             'distance_km' => 'required|numeric|min:1',
             'estimated_time' => 'required',
         ]);
+
+        $existingRoute = Route::findBetweenDzongkhags($validated['origin_dzongkhag'], $validated['destination_dzongkhag']);
+        if ($existingRoute) {
+            return redirect()
+                ->route('admin.routes.edit', $existingRoute->id)
+                ->with('success', 'Route already exists for both directions. Please edit the existing route.');
+        }
 
         Route::create($validated);
 
@@ -258,6 +271,17 @@ class AdminController extends Controller
             'estimated_time' => 'required',
         ]);
 
+        $duplicateRoute = Route::query()
+            ->betweenDzongkhags($validated['origin_dzongkhag'], $validated['destination_dzongkhag'])
+            ->where('id', '!=', $route->id)
+            ->first();
+
+        if ($duplicateRoute) {
+            return redirect()
+                ->route('admin.routes.edit', $duplicateRoute->id)
+                ->with('success', 'Another bidirectional route already exists. Please edit that route instead.');
+        }
+
         $route->update($validated);
 
         return redirect()->route('admin.routes')->with('success', 'Route updated successfully!');
@@ -273,6 +297,21 @@ class AdminController extends Controller
 
         $route->delete();
         return redirect()->route('admin.routes')->with('success', 'Route deleted successfully!');
+    }
+
+    public function generateAllRoutes()
+    {
+        $dzongkhags = $this->getDzongkhags();
+        $summary = app(DzongkhagRouteEstimator::class)->syncAllRoutes($dzongkhags);
+
+        if ($summary['created'] === 0 && $summary['updated'] === 0) {
+            return back()->with('success', 'All dzongkhag routes are already available.');
+        }
+
+        return back()->with(
+            'success',
+            "Routes refreshed successfully. Created {$summary['created']} and updated {$summary['updated']} routes with estimated km and time."
+        );
     }
 
     // Driver Management
@@ -1001,12 +1040,7 @@ class AdminController extends Controller
         $query = Trip::with(['driver.user']);
 
         // Apply filters
-        if ($request->filled('date_from')) {
-            $query->whereDate('departure_datetime', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('departure_datetime', '<=', $request->date_to);
-        }
+        $this->applyDateFilter($query, $request, 'departure_datetime');
         if ($request->filled('origin')) {
             $query->where('origin_dzongkhag', $request->origin);
         }
@@ -1056,23 +1090,25 @@ class AdminController extends Controller
 
     public function exportBookings(Request $request)
     {
-        $query = Booking::with(['trip', 'user', 'payment']);
+        $query = Booking::with(['trip', 'passenger', 'payment']);
 
         // Apply filters
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
-        if ($request->filled('booking_type')) {
-            $query->where('booking_type', $request->booking_type);
-        }
+        $this->applyDateFilter($query, $request, 'created_at');
         if ($request->filled('payment_status')) {
             $query->where('payment_status', $request->payment_status);
         }
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                  ->orWhereHas('passenger', fn($p) =>
+                      $p->where('name', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%")
+                  );
+            });
         }
 
         $bookings = $query->orderBy('created_at', 'desc')->get();
@@ -1088,11 +1124,10 @@ class AdminController extends Controller
             fputcsv($file, ['ID', 'Passenger', 'Phone', 'Route', 'Departure Date', 'Booking Type', 'Seats', 'Payment Status', 'Amount', 'Status', 'Booked At']);
 
             foreach ($bookings as $booking) {
-                $passenger = $booking->passengers_info[0] ?? [];
                 fputcsv($file, [
                     $booking->id,
-                    $passenger['name'] ?? $booking->user->name ?? 'N/A',
-                    $passenger['phone'] ?? $booking->user->phone_number ?? 'N/A',
+                    $booking->getPrimaryPassengerName(),
+                    $booking->getPrimaryPassengerPhone(),
                     ($booking->trip->origin_dzongkhag ?? 'N/A') . ' → ' . ($booking->trip->destination_dzongkhag ?? 'N/A'),
                     $booking->trip->departure_datetime?->format('Y-m-d H:i') ?? 'N/A',
                     ucfirst($booking->booking_type),
@@ -1111,20 +1146,18 @@ class AdminController extends Controller
 
     public function exportPayments(Request $request)
     {
-        $query = Payment::with(['booking.trip', 'booking.user']);
+        $query = Payment::with(['booking.trip', 'booking.passenger']);
 
         // Apply filters
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
+        $this->applyDateFilter($query, $request, 'created_at');
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
         if ($request->filled('payment_method')) {
             $query->where('payment_method', $request->payment_method);
+        }
+        if ($request->filled('search')) {
+            $query->where('transaction_id', 'like', "%{$request->search}%");
         }
 
         $payments = $query->orderBy('created_at', 'desc')->get();
@@ -1140,17 +1173,67 @@ class AdminController extends Controller
             fputcsv($file, ['ID', 'Transaction ID', 'Booking ID', 'Passenger', 'Route', 'Amount', 'Method', 'Status', 'Payment Date']);
 
             foreach ($payments as $payment) {
-                $passenger = $payment->booking->passengers_info[0] ?? [];
                 fputcsv($file, [
                     $payment->id,
                     $payment->transaction_id ?? 'N/A',
                     $payment->booking_id,
-                    $passenger['name'] ?? $payment->booking->user->name ?? 'N/A',
+                    $payment->booking->getPrimaryPassengerName(),
                     ($payment->booking->trip->origin_dzongkhag ?? 'N/A') . ' → ' . ($payment->booking->trip->destination_dzongkhag ?? 'N/A'),
                     $payment->amount,
-                    ucfirst($payment->payment_method ?? 'N/A'),
+                    strtoupper($payment->payment_method ?? 'N/A'),
                     ucfirst($payment->status),
                     $payment->created_at->format('Y-m-d H:i'),
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportRefunds(Request $request)
+    {
+        $query = Booking::with(['passenger', 'trip'])
+            ->where('status', 'cancelled')
+            ->where('refund_status', '!=', 'none');
+
+        $this->applyDateFilter($query, $request, 'cancellation_time');
+
+        if ($request->filled('refund_status')) {
+            $query->where('refund_status', $request->refund_status);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                  ->orWhereHas('passenger', fn($p) =>
+                      $p->where('name', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%")
+                  );
+            });
+        }
+
+        $refunds = $query->orderBy('cancellation_time', 'desc')->get();
+
+        $filename = 'refunds_report_' . now()->format('Y-m-d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function () use ($refunds) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Booking ID', 'Passenger', 'Phone', 'Route', 'Amount', 'Cancelled At', 'Refund Status']);
+
+            foreach ($refunds as $booking) {
+                fputcsv($file, [
+                    $booking->id,
+                    $booking->getPrimaryPassengerName(),
+                    $booking->getPrimaryPassengerPhone(),
+                    ($booking->trip->origin_dzongkhag ?? 'N/A') . ' → ' . ($booking->trip->destination_dzongkhag ?? 'N/A'),
+                    $booking->total_amount ?? 0,
+                    $booking->cancellation_time?->format('Y-m-d H:i') ?? 'N/A',
+                    ucfirst($booking->refund_status),
                 ]);
             }
             fclose($file);
@@ -1165,10 +1248,24 @@ class AdminController extends Controller
 
         // Apply filters
         if ($request->filled('verified')) {
-            $query->where('verified', $request->verified === 'yes');
+            $query->where('verified', $request->boolean('verified'));
         }
         if ($request->filled('active')) {
-            $query->where('active', $request->active === 'yes');
+            $query->where('active', $request->boolean('active'));
+        }
+        if ($request->filled('vehicle_type')) {
+            $query->where('vehicle_type', $request->vehicle_type);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('license_number', 'like', "%{$search}%")
+                  ->orWhere('taxi_plate_number', 'like', "%{$search}%")
+                  ->orWhereHas('user', fn($u) =>
+                      $u->where('name', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%")
+                  );
+            });
         }
 
         $drivers = $query->get();
@@ -1212,12 +1309,7 @@ class AdminController extends Controller
         $query = Payout::with(['driver.user', 'trip']);
 
         // Apply filters
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
+        $this->applyDateFilter($query, $request, 'created_at');
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
@@ -1279,9 +1371,7 @@ class AdminController extends Controller
             'full_taxi_price' => 'required|numeric|min:0',
         ]);
 
-        $route = Route::where('origin_dzongkhag', $validated['origin_dzongkhag'])
-            ->where('destination_dzongkhag', $validated['destination_dzongkhag'])
-            ->first();
+        $route = Route::findBetweenDzongkhags($validated['origin_dzongkhag'], $validated['destination_dzongkhag']);
 
         Trip::create([
             'driver_id' => $validated['driver_id'],
@@ -1323,9 +1413,7 @@ class AdminController extends Controller
             'status' => 'required|in:active,completed,cancelled',
         ]);
 
-        $route = Route::where('origin_dzongkhag', $validated['origin_dzongkhag'])
-            ->where('destination_dzongkhag', $validated['destination_dzongkhag'])
-            ->first();
+        $route = Route::findBetweenDzongkhags($validated['origin_dzongkhag'], $validated['destination_dzongkhag']);
 
         $bookedSeats = $trip->total_seats - $trip->available_seats;
         $newAvailableSeats = $validated['total_seats'] - $bookedSeats;
@@ -1360,12 +1448,30 @@ class AdminController extends Controller
 
     private function getDzongkhags()
     {
-        return [
-            'Bumthang', 'Chhukha', 'Dagana', 'Gasa', 'Haa',
-            'Lhuentse', 'Mongar', 'Paro', 'Pemagatshel', 'Punakha',
-            'Samdrup Jongkhar', 'Samtse', 'Sarpang', 'Thimphu', 'Trashigang',
-            'Trashiyangtse', 'Trongsa', 'Tsirang', 'Wangdue Phodrang', 'Zhemgang'
-        ];
+        return config('dzongkhags.list', [
+            'Bumthang',
+            'Chhukha',
+            'Dagana',
+            'Gasa',
+            'Haa',
+            'Lhuentse',
+            'Mongar',
+            'Paro',
+            'Pemagatshel',
+            'Punakha',
+            'Samdrup Jongkhar',
+            'Samtse',
+            'Sarpang',
+            'Thimphu',
+            'Trashigang',
+            'Trashiyangtse',
+            'Trongsa',
+            'Tsirang',
+            'Wangdue Phodrang',
+            'Zhemgang',
+            'Phuentsholing',
+            'Gelephu',
+        ]);
     }
 
     // Settings Management

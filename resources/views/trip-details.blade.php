@@ -47,14 +47,14 @@
                                 <i class="bi bi-signpost-2 text-primary me-3 fs-4"></i>
                                 <div>
                                     <small class="text-muted d-block">Distance</small>
-                                    <strong>{{ $trip->route->distance_km }} km</strong>
+                                    <strong>{{ $trip->route->formatted_distance_km }}</strong>
                                 </div>
                             </div>
                             <div class="d-flex">
                                 <i class="bi bi-hourglass-split text-primary me-3 fs-4"></i>
                                 <div>
                                     <small class="text-muted d-block">Estimated Time</small>
-                                    <strong>{{ $trip->route->estimated_time }}</strong>
+                                    <strong>{{ $trip->route->formatted_estimated_time }}</strong>
                                 </div>
                             </div>
                             @endif
@@ -68,6 +68,40 @@
                                     <strong>{{ $trip->driver->user->name }}</strong>
                                 </div>
                             </div>
+
+                            <!-- Driver Rating -->
+                            @if($trip->driver->average_rating > 0)
+                            <div class="d-flex mb-3">
+                                <i class="bi bi-star-fill text-warning me-3 fs-4"></i>
+                                <div>
+                                    <small class="text-muted d-block">Driver Rating</small>
+                                    <div>
+                                        <strong class="text-warning">{{ number_format($trip->driver->average_rating, 1) }}/5</strong>
+                                        <small class="text-muted ms-1">({{ $trip->driver->rating_count }} {{ $trip->driver->rating_count === 1 ? 'rating' : 'ratings' }})</small>
+                                    </div>
+                                    <div class="mt-1">
+                                        @for($i = 0; $i < 5; $i++)
+                                            @if($i < floor($trip->driver->average_rating))
+                                                <i class="fas fa-star text-warning small"></i>
+                                            @elseif($i < $trip->driver->average_rating)
+                                                <i class="fas fa-star-half-alt text-warning small"></i>
+                                            @else
+                                                <i class="far fa-star text-warning small"></i>
+                                            @endif
+                                        @endfor
+                                    </div>
+                                </div>
+                            </div>
+                            @else
+                            <div class="d-flex mb-3">
+                                <i class="bi bi-star text-muted me-3 fs-4"></i>
+                                <div>
+                                    <small class="text-muted d-block">Driver Rating</small>
+                                    <span class="text-muted">No ratings yet</span>
+                                </div>
+                            </div>
+                            @endif
+
                             <div class="d-flex mb-3">
                                 <i class="bi bi-telephone text-muted me-3 fs-4"></i>
                                 <div>

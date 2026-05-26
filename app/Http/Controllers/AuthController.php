@@ -55,15 +55,22 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20|regex:/^[0-9]+$/|unique:users',
             'email' => 'required|email|unique:users',
+            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'password' => ['required', 'confirmed', Password::min(8)],
         ], [
             'phone_number.regex' => 'Phone number must contain only digits.',
         ]);
 
+        $profileImagePath = null;
+        if ($request->hasFile('profile_image')) {
+            $profileImagePath = $request->file('profile_image')->store('profile-images', 'public');
+        }
+
         $user = User::create([
             'name' => $validated['name'],
             'phone_number' => $validated['phone_number'],
             'email' => $validated['email'],
+            'profile_image' => $profileImagePath,
             'password' => Hash::make($validated['password']),
             'role' => 'passenger',
         ]);
@@ -84,6 +91,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20|regex:/^[0-9]+$/|unique:users',
             'email' => 'required|email|unique:users',
+            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'password' => ['required', 'confirmed', Password::min(8)],
             'license_number' => 'required|string|max:50|unique:drivers',
             'taxi_plate_number' => 'required|string|max:50|unique:drivers',
@@ -93,10 +101,16 @@ class AuthController extends Controller
             'phone_number.regex' => 'Phone number must contain only digits.',
         ]);
 
+        $profileImagePath = null;
+        if ($request->hasFile('profile_image')) {
+            $profileImagePath = $request->file('profile_image')->store('profile-images', 'public');
+        }
+
         $user = User::create([
             'name' => $validated['name'],
             'phone_number' => $validated['phone_number'],
             'email' => $validated['email'],
+            'profile_image' => $profileImagePath,
             'password' => Hash::make($validated['password']),
             'role' => 'driver',
         ]);

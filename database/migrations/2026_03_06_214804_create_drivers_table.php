@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('license_number')->unique();
             $table->string('taxi_plate_number')->unique();
             $table->string('vehicle_type')->default('Sedan');
+            $table->enum('fuel_type', ['Fuel', 'Electric'])->default('Fuel');
             $table->boolean('verified')->default(false);
             $table->boolean('active')->default(true);
             $table->timestamps();

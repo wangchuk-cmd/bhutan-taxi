@@ -39,7 +39,10 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
                                 <input type="password" name="password" class="form-control" 
-                                       placeholder="Enter your password" required>
+                                       placeholder="Enter your password" required data-password-input="login-password">
+                                <button class="btn btn-outline-secondary" type="button" data-password-toggle="login-password" aria-label="Show password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
                             </div>
                         </div>
 
@@ -85,3 +88,25 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    document.querySelectorAll('[data-password-toggle]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const targetId = button.getAttribute('data-password-toggle');
+            const input = document.querySelector(`[data-password-input="${targetId}"]`);
+            if (!input) return;
+
+            const icon = button.querySelector('i');
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+            if (icon) {
+                icon.className = isHidden ? 'bi bi-eye-slash' : 'bi bi-eye';
+            }
+        });
+    });
+})();
+</script>
+@endpush

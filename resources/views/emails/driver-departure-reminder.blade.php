@@ -228,14 +228,14 @@
             @if($trip->route && $trip->route->distance_km)
             <div class="detail-row">
                 <span class="label">Distance:</span>
-                <span class="value">{{ $trip->route->distance_km }} km</span>
+                <span class="value">{{ $trip->route->formatted_distance_km }}</span>
             </div>
             @endif
             
             @if($trip->route && $trip->route->estimated_time)
             <div class="detail-row">
                 <span class="label">Est. Duration:</span>
-                <span class="value">{{ $trip->route->estimated_time }}</span>
+                <span class="value">{{ $trip->route->formatted_estimated_time }}</span>
             </div>
             @endif
         </div>

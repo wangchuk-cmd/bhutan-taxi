@@ -196,9 +196,11 @@ document.addEventListener('DOMContentLoaded', function() {
         BhutanTaxi.initSearchForm();
     }
     
-    // Start polling on search results page
+    // Start polling only on passenger search results page.
+    // This prevents all-trips and other pages from being overwritten by API HTML.
     const tripsList = document.getElementById('trips-list');
-    if (tripsList) {
+    const searchResultsForm = document.getElementById('passenger-results-search-form');
+    if (tripsList && searchResultsForm) {
         BhutanTaxi.startPolling(() => {
             BhutanTaxi.refreshSearchResults();
         }, 10000); // Poll every 10 seconds

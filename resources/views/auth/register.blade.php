@@ -22,8 +22,13 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('register') }}">
+                    <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data" autocomplete="off">
                         @csrf
+
+                        <div style="position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden;" aria-hidden="true">
+                            <input type="text" name="fake_username" autocomplete="off" tabindex="-1">
+                            <input type="password" name="fake_password" autocomplete="new-password" tabindex="-1">
+                        </div>
                         
                         <div class="mb-3">
                             <label class="form-label">Full Name</label>
@@ -54,11 +59,23 @@
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">Profile Image (Optional)</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-image"></i></span>
+                                <input type="file" name="profile_image" class="form-control" accept="image/png,image/jpeg,image/webp">
+                            </div>
+                            <small class="text-muted">Accepted: JPG, PNG, WEBP. Max size: 2MB.</small>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Password</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
                                 <input type="password" name="password" class="form-control" 
-                                       placeholder="Min 8 characters" required>
+                                       placeholder="Min 8 characters" required autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" data-password-input="register-password">
+                                <button class="btn btn-outline-secondary" type="button" data-password-toggle="register-password" aria-label="Show password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
                             </div>
                         </div>
 
@@ -67,7 +84,10 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
                                 <input type="password" name="password_confirmation" class="form-control" 
-                                       placeholder="Confirm your password" required>
+                                       placeholder="Confirm your password" required autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" data-password-input="register-password-confirm">
+                                <button class="btn btn-outline-secondary" type="button" data-password-toggle="register-password-confirm" aria-label="Show password">
+                                    <i class="bi bi-eye"></i>
+                                </button>
                             </div>
                         </div>
 
@@ -109,3 +129,25 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    document.querySelectorAll('[data-password-toggle]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const targetId = button.getAttribute('data-password-toggle');
+            const input = document.querySelector(`[data-password-input="${targetId}"]`);
+            if (!input) return;
+
+            const icon = button.querySelector('i');
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+            if (icon) {
+                icon.className = isHidden ? 'bi bi-eye-slash' : 'bi bi-eye';
+            }
+        });
+    });
+})();
+</script>
+@endpush

@@ -67,6 +67,65 @@
         margin-bottom: 6px;
         font-size: 14px;
     }
+
+    .route-preview-card {
+        margin-top: 18px;
+        border: 1px solid #dbe4ff;
+        border-radius: 14px;
+        padding: 16px;
+        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+    }
+
+    .route-preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .route-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .route-preview-item {
+        background: #fff;
+        border: 1px solid #edf2ff;
+        border-radius: 12px;
+        padding: 12px;
+        min-height: 72px;
+    }
+
+    .route-preview-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 6px;
+    }
+
+    .route-preview-value {
+        font-size: 14px;
+        font-weight: 700;
+        color: #111827;
+        line-height: 1.35;
+    }
+
+    .route-preview-empty {
+        font-size: 13px;
+        color: #6b7280;
+        font-style: italic;
+    }
+
+    @media (max-width: 767.98px) {
+        .route-preview-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
 </style>
 
 <div class="page-header">
@@ -111,6 +170,34 @@
                            data-exclude-input="#trip-origin"
                            value="{{ old('destination_dzongkhag') }}"
                            required>
+                </div>
+            </div>
+
+            <div class="route-preview-card d-none" id="route-preview-card">
+                <div class="route-preview-header">
+                    <div>
+                        <span class="badge bg-primary-subtle text-primary">Admin Route Preview</span>
+                        <div class="route-preview-empty mt-2" id="route-preview-hint">Select origin and destination to load route details.</div>
+                    </div>
+                </div>
+
+                <div class="route-preview-grid">
+                    <div class="route-preview-item">
+                        <span class="route-preview-label">Destination</span>
+                        <div class="route-preview-value" id="route-preview-destination">-</div>
+                    </div>
+                    <div class="route-preview-item">
+                        <span class="route-preview-label">Distance</span>
+                        <div class="route-preview-value" id="route-preview-distance">-</div>
+                    </div>
+                    <div class="route-preview-item">
+                        <span class="route-preview-label">Estimated Time</span>
+                        <div class="route-preview-value" id="route-preview-duration">-</div>
+                    </div>
+                    <div class="route-preview-item">
+                        <span class="route-preview-label">Estimated Arrival</span>
+                        <div class="route-preview-value" id="route-preview-arrival">-</div>
+                    </div>
                 </div>
             </div>
 
@@ -219,6 +306,16 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const routeData = @json($routeData);
+
+        const originInput = document.getElementById('trip-origin');
+        const destinationInput = document.getElementById('trip-destination');
+        const routePreviewCard = document.getElementById('route-preview-card');
+        const routePreviewHint = document.getElementById('route-preview-hint');
+        const routePreviewDestination = document.getElementById('route-preview-destination');
+        const routePreviewDistance = document.getElementById('route-preview-distance');
+        const routePreviewDuration = document.getElementById('route-preview-duration');
+        const routePreviewArrival = document.getElementById('route-preview-arrival');
         const totalSeats = document.querySelector('input[name="total_seats"]');
         const pricePerSeat = document.querySelector('input[name="price_per_seat"]');
         const fullTaxiPrice = document.getElementById('fullTaxiPrice');
@@ -226,6 +323,98 @@
         const departureTime = document.getElementById('departure-time');
         const departureDatetimeHidden = document.getElementById('departure-datetime-hidden');
         const datetimeSummary = document.getElementById('datetime-summary');
+
+        function normalizeText(value) {
+            return (value || '').trim().toLowerCase();
+        }
+
+        function getRoutesByOrigin(origin) {
+            return routeData.filter((route) => normalizeText(route.origin) === normalizeText(origin));
+        }
+
+        function findRoute(origin, destination) {
+            return routeData.find((route) => {
+                return normalizeText(route.origin) === normalizeText(origin)
+                    && normalizeText(route.destination) === normalizeText(destination);
+            });
+        }
+
+        function durationToMinutes(duration) {
+            if (!duration) return 0;
+
+            const hhmmMatch = String(duration).match(/(\d{1,2})\s*:\s*(\d{1,2})/);
+            if (hhmmMatch) {
+                return (parseInt(hhmmMatch[1], 10) * 60) + parseInt(hhmmMatch[2], 10);
+            }
+
+            const hourMatch = String(duration).match(/(\d+)\s*(h|hr|hrs|hour|hours)/i);
+            const minuteMatch = String(duration).match(/(\d+)\s*(m|min|mins|minute|minutes)/i);
+            if (hourMatch || minuteMatch) {
+                const hours = hourMatch ? parseInt(hourMatch[1], 10) : 0;
+                const minutes = minuteMatch ? parseInt(minuteMatch[1], 10) : 0;
+                return (hours * 60) + minutes;
+            }
+
+            const numbers = String(duration).match(/\d+/g);
+            if (!numbers || numbers.length === 0) return 0;
+            if (numbers.length >= 2) {
+                return (parseInt(numbers[0], 10) * 60) + parseInt(numbers[1], 10);
+            }
+
+            return parseInt(numbers[0], 10) || 0;
+        }
+
+        function formatDuration(duration) {
+            const minutes = durationToMinutes(duration);
+            if (!minutes) return '-';
+
+            const hours = Math.floor(minutes / 60);
+            const remainingMinutes = minutes % 60;
+            const hourLabel = hours ? `${hours} hr${hours > 1 ? 's' : ''}` : '';
+            const minuteLabel = remainingMinutes ? `${remainingMinutes} min${remainingMinutes > 1 ? 's' : ''}` : '';
+            return [hourLabel, minuteLabel].filter(Boolean).join(' ');
+        }
+
+        function formatArrival(dateStr, timeStr, duration) {
+            if (!dateStr || !timeStr || !duration) return '-';
+
+            const arrival = new Date(`${dateStr}T${timeStr}`);
+            if (Number.isNaN(arrival.getTime())) return '-';
+
+            arrival.setMinutes(arrival.getMinutes() + durationToMinutes(duration));
+            return arrival.toLocaleString([], {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function autoFillDestination() {
+            const originMatches = getRoutesByOrigin(originInput.value);
+            if (destinationInput.value) return;
+            if (originMatches.length === 1) {
+                destinationInput.value = originMatches[0].destination;
+            }
+        }
+
+        function updateRoutePreview() {
+            autoFillDestination();
+
+            const selectedRoute = findRoute(originInput.value, destinationInput.value);
+            if (!selectedRoute) {
+                routePreviewCard.classList.add('d-none');
+                return;
+            }
+
+            routePreviewCard.classList.remove('d-none');
+            routePreviewHint.textContent = 'This route comes from admin settings and is used to calculate distance and travel time.';
+            routePreviewDestination.textContent = `${selectedRoute.origin} → ${selectedRoute.destination}`;
+            routePreviewDistance.textContent = `${selectedRoute.distance_km} km`;
+            routePreviewDuration.textContent = formatDuration(selectedRoute.estimated_time);
+            routePreviewArrival.textContent = formatArrival(departureDate.value, departureTime.value, selectedRoute.estimated_time);
+        }
         
         // Get today's date and current time
         const today = new Date();
@@ -296,7 +485,14 @@
                 const timeDisplay = departureTime.value;
                 datetimeSummary.textContent = `${dateDisplay}, ${timeDisplay}`;
             }
+
+            updateRoutePreview();
         }
+
+        originInput.addEventListener('change', updateRoutePreview);
+        originInput.addEventListener('blur', updateRoutePreview);
+        destinationInput.addEventListener('change', updateRoutePreview);
+        destinationInput.addEventListener('blur', updateRoutePreview);
         
         departureDate.addEventListener('change', function() {
             updateTimeConstraints();

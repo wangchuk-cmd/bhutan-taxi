@@ -15,6 +15,7 @@ class User extends Authenticatable
         'phone_number',
         'email',
         'google_id',
+        'profile_image',
         'password',
         'role',
     ];
@@ -50,6 +51,11 @@ class User extends Authenticatable
     public function complaints()
     {
         return $this->hasMany(Complaint::class);
+    }
+
+    public function ratingsGiven()
+    {
+        return $this->hasMany(Rating::class, 'passenger_id');
     }
 
     public function isAdmin()

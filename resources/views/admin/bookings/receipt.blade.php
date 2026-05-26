@@ -170,7 +170,7 @@
                         </p>
                         <p class="mb-0 text-muted">
                             <i class="bi bi-envelope me-1"></i>support@bhutantaxi.bt |
-                            <i class="bi bi-telephone me-1"></i>+975-2-123456
+                            <i class="bi bi-telephone me-1"></i>+975-17832648
                         </p>
                         <p class="mt-1 mb-0 text-muted small">Generated: {{ now()->format('M d, Y h:i A') }}</p>
                     </div>

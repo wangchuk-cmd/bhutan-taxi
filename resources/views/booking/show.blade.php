@@ -69,6 +69,32 @@
                                     <strong>{{ $booking->trip->driver->user->name }}</strong>
                                 </div>
                             </div>
+
+                            <!-- Driver Rating Badge -->
+                            @if($booking->trip->driver->average_rating > 0)
+                                <div class="d-flex mb-3">
+                                    <i class="bi bi-star-fill text-warning me-3 fs-4"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Driver Rating</small>
+                                        <div>
+                                            <strong class="me-2">{{ number_format($booking->trip->driver->average_rating, 1) }}/5</strong>
+                                            <small class="text-muted">({{ $booking->trip->driver->rating_count }} {{ $booking->trip->driver->rating_count === 1 ? 'rating' : 'ratings' }})</small>
+                                        </div>
+                                        <div class="mt-1">
+                                            @for($i = 0; $i < 5; $i++)
+                                                @if($i < floor($booking->trip->driver->average_rating))
+                                                    <i class="fas fa-star text-warning small"></i>
+                                                @elseif($i < $booking->trip->driver->average_rating)
+                                                    <i class="fas fa-star-half-alt text-warning small"></i>
+                                                @else
+                                                    <i class="far fa-star text-warning small"></i>
+                                                @endif
+                                            @endfor
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
                             @if($booking->payment_status === 'paid')
                             <div class="d-flex mb-3">
                                 <i class="bi bi-telephone text-success me-3 fs-4"></i>
@@ -204,6 +230,58 @@
                         <hr>
                         <a href="{{ route('booking.receipt', $booking->id) }}" class="btn btn-outline-success w-100">
                             <i class="bi bi-receipt me-2"></i>View & Print Receipt
+                        </a>
+                    @endif
+
+                    <!-- Driver Reviews Section -->
+                    @if($booking->trip->driver->rating_count > 0)
+                        <hr>
+                        <p class="mb-3">
+                            <small class="text-muted d-block mb-2"><i class="bi bi-chat-left-text me-1"></i>Recent Customer Reviews</small>
+                            @foreach($driverRatings as $review)
+                                <div class="card card-sm mb-2">
+                                    <div class="card-body p-2">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div style="flex: 1; min-width: 0;">
+                                                <strong class="small d-block">{{ $review->passenger->name }}</strong>
+                                                <small class="text-muted d-block">{{ $review->created_at->diffForHumans() }}</small>
+                                            </div>
+                                            <div class="text-end ms-2">
+                                                <div>
+                                                    @for($i = 0; $i < $review->rating; $i++)
+                                                        <i class="fas fa-star text-warning" style="font-size: 0.75rem;"></i>
+                                                    @endfor
+                                                    @for($i = $review->rating; $i < 5; $i++)
+                                                        <i class="far fa-star text-warning" style="font-size: 0.75rem;"></i>
+                                                    @endfor
+                                                </div>
+                                                <small class="text-muted">{{ $review->rating }}/5</small>
+                                            </div>
+                                        </div>
+                                        @if($review->review)
+                                            <p class="mt-1 mb-0 small text-muted">
+                                                <em>"{{ Str::limit($review->review, 80) }}"</em>
+                                            </p>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </p>
+                    @endif
+
+                    <!-- Rating Section -->
+                    @if($booking->payment_status === 'paid')
+                        <hr>
+                        @if($booking->rating)
+                            <div class="alert alert-success py-2 mb-3">
+                                <small>
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    You rated this driver: <strong>{{ str_repeat('⭐', $booking->rating->rating) }}</strong>
+                                </small>
+                            </div>
+                        @endif
+                        <a href="{{ route('rating.show', $booking->id) }}" class="btn btn-warning w-100">
+                            <i class="bi bi-star-fill me-2"></i>{{ $booking->rating ? 'Update Rating' : 'Rate Driver' }}
                         </a>
                     @endif
                 </div>

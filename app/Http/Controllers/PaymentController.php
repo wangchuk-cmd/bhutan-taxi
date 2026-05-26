@@ -18,7 +18,7 @@ class PaymentController extends Controller
 {
     public function process($bookingId)
     {
-        $booking = Booking::with(['trip.route', 'trip.driver.user'])
+        $booking = Booking::with(['trip.route', 'trip.driver:id,user_id,vehicle_type,fuel_type', 'trip.driver.user:id,name'])
             ->where('passenger_id', Auth::id())
             ->where('payment_status', 'pending')
             ->findOrFail($bookingId);
@@ -31,7 +31,7 @@ class PaymentController extends Controller
 
     public function complete(Request $request, $bookingId)
     {
-        $booking = Booking::with(['trip.driver.user', 'trip.route', 'passenger'])
+        $booking = Booking::with(['trip.driver:id,user_id,vehicle_type,fuel_type', 'trip.driver.user:id,name', 'trip.route', 'passenger'])
             ->where('passenger_id', Auth::id())
             ->where('payment_status', 'pending')
             ->findOrFail($bookingId);

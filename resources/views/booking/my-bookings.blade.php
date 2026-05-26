@@ -42,6 +42,18 @@
                                     <span>{{ $booking->trip->departure_datetime->format('h:i A') }}</span>
                                 </div>
                                 <div class="booking-meta">
+                                    <small>Vehicle</small>
+                                    <span>{{ $booking->trip->driver->vehicle_type }}</span>
+                                </div>
+                                <div class="booking-meta">
+                                    <small>Fuel Type</small>
+                                    @if($booking->trip->driver->fuel_type === 'Electric')
+                                        <span><i class="bi bi-lightning-charge" style="color: #0dcaf0;"></i> Electric</span>
+                                    @else
+                                        <span><i class="bi bi-fuel-pump" style="color: #fd7e14;"></i> Fuel</span>
+                                    @endif
+                                </div>
+                                <div class="booking-meta">
                                     <small>Seats</small>
                                     <span>{{ $booking->seats_booked }}</span>
                                 </div>
@@ -58,6 +70,15 @@
                                     <a href="{{ route('bookings.show', $booking->id) }}" class="btn-action btn-view" title="View Details">
                                         <i class="bi bi-eye"></i>
                                     </a>
+                                    @if($booking->payment_status === 'paid' && !$booking->rating)
+                                        <a href="{{ route('rating.show', $booking->id) }}" class="btn btn-sm btn-warning" title="Rate Driver">
+                                            <i class="bi bi-star me-1"></i> Rate Driver
+                                        </a>
+                                    @elseif($booking->payment_status === 'paid' && $booking->rating)
+                                        <a href="{{ route('rating.show', $booking->id) }}" class="btn btn-sm btn-warning" title="Update Rating">
+                                            <i class="bi bi-star-fill me-1"></i> Update Rating
+                                        </a>
+                                    @endif
                                     @if($booking->canCancel())
                                         <form id="cancelForm-{{ $booking->id }}" action="{{ route('booking.cancel', $booking->id) }}" method="POST" class="d-inline">
                                             @csrf

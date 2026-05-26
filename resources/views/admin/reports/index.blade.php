@@ -75,20 +75,20 @@
                 <!-- Trips Tab -->
                 <div class="tab-pane fade show active" id="tripsTab">
                     <form id="tripsFilterForm" class="mb-3">
-                        <div class="row g-2 align-items-end">
-                            <div class="col-md-2">
+                        <div class="d-flex flex-wrap flex-lg-nowrap gap-2 align-items-end">
+                            <div class="flex-grow-1" style="min-width: 120px;">
                                 <label class="form-label small">Date From</label>
                                 <input type="date" name="date_from" class="form-control form-control-sm">
                             </div>
-                            <div class="col-md-2">
+                            <div class="flex-grow-1" style="min-width: 120px;">
                                 <label class="form-label small">Date To</label>
                                 <input type="date" name="date_to" class="form-control form-control-sm">
                             </div>
-                            <div class="col-md-1">
+                            <div style="width: 100px; min-width: 100px;">
                                 <label class="form-label small" title="e.g. 7,9,10">Days</label>
                                 <input type="text" name="specific_dates" class="form-control form-control-sm" placeholder="7,9,10" title="Enter specific days separated by commas">
                             </div>
-                            <div class="col-md-2">
+                            <div class="flex-grow-1" style="min-width: 130px;">
                                 <label class="form-label small">Origin</label>
                                 <select name="origin" class="form-select form-select-sm">
                                     <option value="">All</option>
@@ -97,7 +97,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-2">
+                            <div class="flex-grow-1" style="min-width: 130px;">
                                 <label class="form-label small">Destination</label>
                                 <select name="destination" class="form-select form-select-sm">
                                     <option value="">All</option>
@@ -106,7 +106,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-2">
+                            <div style="width: 140px; min-width: 140px;">
                                 <label class="form-label small">Status</label>
                                 <select name="status" class="form-select form-select-sm">
                                     <option value="">All</option>
@@ -115,7 +115,7 @@
                                     <option value="cancelled">Cancelled</option>
                                 </select>
                             </div>
-                            <div class="col-md-2">
+                            <div style="width: 120px; min-width: 120px;">
                                 <button type="button" class="btn btn-primary btn-sm w-100" onclick="searchTrips()">
                                     <i class="bi bi-search me-1"></i>Search
                                 </button>
@@ -536,7 +536,8 @@
         const data = new FormData(form);
         const params = new URLSearchParams();
         for (const [key, value] of data.entries()) {
-            if (value) params.append(key, value);
+            // Keep values like "0" and avoid only empty strings being dropped
+            if (value !== null && value !== undefined && value !== '') params.append(key, value);
         }
         return params.toString();
     }
@@ -792,12 +793,13 @@
             .then(result => {
                 if (result.success) { alert('Payout completed!'); searchPayouts(); }
                 else { alert('Error: ' + (result.message || 'Failed')); }
+            });
         });
     }
 
     function exportTrips() { window.location.href = `{{ route('admin.export.trips') }}?${getFormData('tripsFilterForm')}`; }
     function exportBookings() { window.location.href = `{{ route('admin.export.bookings') }}?${getFormData('bookingsFilterForm')}`; }
-    function exportRefunds() { window.location.href = `{{ route('admin.export.bookings') }}?refund_filter=1&${getFormData('refundsFilterForm')}`; }
+    function exportRefunds() { window.location.href = `{{ route('admin.export.refunds') }}?${getFormData('refundsFilterForm')}`; }
     function exportPayments() { window.location.href = `{{ route('admin.export.payments') }}?${getFormData('paymentsFilterForm')}`; }
     function exportDrivers() { window.location.href = `{{ route('admin.export.drivers') }}?${getFormData('driversFilterForm')}`; }
     function exportPayouts() { window.location.href = `{{ route('admin.export.payouts') }}?${getFormData('payoutsFilterForm')}`; }

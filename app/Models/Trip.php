@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -84,5 +85,19 @@ class Trip extends Model
     public function hasAvailableSeats($count = 1)
     {
         return $this->available_seats >= $count;
+    }
+
+    public function getEstimatedArrivalAtAttribute(): ?Carbon
+    {
+        if (!$this->departure_datetime) {
+            return null;
+        }
+
+        $estimatedMinutes = $this->route?->estimated_time_minutes;
+        if (empty($estimatedMinutes)) {
+            return Carbon::parse($this->departure_datetime);
+        }
+
+        return Carbon::parse($this->departure_datetime)->copy()->addMinutes($estimatedMinutes);
     }
 }

@@ -14,7 +14,7 @@ class BookingController extends Controller
 {
     public function create($tripId)
     {
-        $trip = Trip::with(['driver.user', 'route'])->findOrFail($tripId);
+        $trip = Trip::with(['driver:id,user_id,vehicle_type,fuel_type', 'driver.user:id,name', 'route'])->findOrFail($tripId);
         
         if (!$trip->hasAvailableSeats()) {
             return back()->with('error', 'No seats available for this trip.');
@@ -40,6 +40,12 @@ class BookingController extends Controller
 
         // Check seat availability
         $seatsNeeded = $validated['booking_type'] === 'full' ? $trip->total_seats : $validated['seats_booked'];
+
+        if ($validated['booking_type'] === 'shared' && $validated['seats_booked'] > $trip->available_seats) {
+            return back()
+                ->withInput()
+                ->with('error', 'Only ' . $trip->available_seats . ' seat' . ($trip->available_seats === 1 ? '' : 's') . ' are available for this trip.');
+        }
         
         if (!$trip->hasAvailableSeats($seatsNeeded)) {
             return back()->with('error', 'Not enough seats available.');
@@ -71,7 +77,7 @@ class BookingController extends Controller
         // Get bookings but exclude those completed more than 12 hours ago
         $twelveHoursAgo = now()->subHours(12);
         
-        $bookings = Booking::with(['trip.route', 'trip.driver.user', 'payment'])
+        $bookings = Booking::with(['trip.route', 'trip.driver:id,user_id,vehicle_type,fuel_type', 'trip.driver.user:id,name', 'payment'])
             ->where('passenger_id', Auth::id())
             ->where(function ($query) use ($twelveHoursAgo) {
                 // Show bookings that are either:
@@ -89,16 +95,24 @@ class BookingController extends Controller
 
     public function show($id)
     {
-        $booking = Booking::with(['trip.route', 'trip.driver.user', 'payment'])
+        $booking = Booking::with(['trip.route', 'trip.driver:id,user_id,vehicle_type,fuel_type,average_rating,rating_count', 'trip.driver.user:id,name,phone_number', 'payment'])
             ->where('passenger_id', Auth::id())
             ->findOrFail($id);
 
-        return view('booking.show', compact('booking'));
+        // Get driver's ratings for display
+        $driverId = $booking->trip->driver->id;
+        $driverRatings = \App\Models\Rating::where('driver_id', $driverId)
+            ->with('passenger:id,name')
+            ->latest()
+            ->limit(3)
+            ->get();
+
+        return view('booking.show', compact('booking', 'driverRatings'));
     }
 
     public function receipt($id)
     {
-        $booking = Booking::with(['trip.route', 'trip.driver.user', 'payment'])
+        $booking = Booking::with(['trip.route', 'trip.driver:id,user_id,vehicle_type,fuel_type', 'trip.driver.user:id,name', 'payment'])
             ->where('passenger_id', Auth::id())
             ->where('payment_status', 'paid')
             ->findOrFail($id);

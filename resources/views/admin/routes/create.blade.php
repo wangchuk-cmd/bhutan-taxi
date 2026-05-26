@@ -22,11 +22,17 @@
 
         <form action="{{ route('admin.routes.store') }}" method="POST">
             @csrf
+            <datalist id="route-dzongkhag-options">
+                @foreach($dzongkhags as $dzongkhag)
+                    <option value="{{ $dzongkhag }}"></option>
+                @endforeach
+            </datalist>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label fw-bold">Origin Dzongkhag</label>
                     <input type="text" name="origin_dzongkhag" id="route-origin" class="form-control" 
                            placeholder="Type origin dzongkhag..."
+                           list="route-dzongkhag-options"
                            data-dzongkhag-autocomplete
                            data-exclude-input="#route-destination"
                            data-next-input="#route-destination"
@@ -37,6 +43,7 @@
                     <label class="form-label fw-bold">Destination Dzongkhag</label>
                     <input type="text" name="destination_dzongkhag" id="route-destination" class="form-control" 
                            placeholder="Type destination dzongkhag..."
+                           list="route-dzongkhag-options"
                            data-dzongkhag-autocomplete
                            data-exclude-input="#route-origin"
                            value="{{ old('destination_dzongkhag') }}"
@@ -50,7 +57,8 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label fw-bold">Estimated Time (HH:MM)</label>
-                    <input type="time" name="estimated_time" class="form-control" value="{{ old('estimated_time') }}" required>
+                    <input type="text" name="estimated_time" class="form-control" value="{{ old('estimated_time') }}" placeholder="e.g. 04:26" inputmode="numeric" pattern="[0-9]{1,2}:[0-9]{2}" required>
+                    <div class="form-text">Enter travel duration as hours and minutes.</div>
                 </div>
             </div>
             <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-2"></i>Create Route</button>

@@ -22,11 +22,17 @@
 
         <form action="{{ route('admin.routes.update', $route->id) }}" method="POST">
             @csrf @method('PUT')
+            <datalist id="route-dzongkhag-options">
+                @foreach($dzongkhags as $dzongkhag)
+                    <option value="{{ $dzongkhag }}"></option>
+                @endforeach
+            </datalist>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label fw-bold">Origin Dzongkhag</label>
                     <input type="text" name="origin_dzongkhag" id="edit-route-origin" class="form-control" 
                            placeholder="Type origin dzongkhag..."
+                           list="route-dzongkhag-options"
                            data-dzongkhag-autocomplete
                            data-exclude-input="#edit-route-destination"
                            data-next-input="#edit-route-destination"
@@ -37,6 +43,7 @@
                     <label class="form-label fw-bold">Destination Dzongkhag</label>
                     <input type="text" name="destination_dzongkhag" id="edit-route-destination" class="form-control" 
                            placeholder="Type destination dzongkhag..."
+                           list="route-dzongkhag-options"
                            data-dzongkhag-autocomplete
                            data-exclude-input="#edit-route-origin"
                            value="{{ old('destination_dzongkhag', $route->destination_dzongkhag) }}"
@@ -49,8 +56,9 @@
                     <input type="number" name="distance_km" class="form-control" value="{{ $route->distance_km }}" step="0.1" min="1" required>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">Estimated Time</label>
-                    <input type="time" name="estimated_time" class="form-control" value="{{ $route->estimated_time }}" required>
+                    <label class="form-label fw-bold">Estimated Time (HH:MM)</label>
+                    <input type="text" name="estimated_time" class="form-control" value="{{ old('estimated_time', $route->normalized_estimated_time ?? substr($route->estimated_time, 0, 5)) }}" placeholder="e.g. 04:26" inputmode="numeric" pattern="[0-9]{1,2}:[0-9]{2}" required>
+                    <div class="form-text">Enter travel duration as hours and minutes</div>
                 </div>
             </div>
             <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-2"></i>Update Route</button>

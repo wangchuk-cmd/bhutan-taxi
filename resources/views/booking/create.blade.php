@@ -77,9 +77,14 @@
                             <label class="form-label fw-bold">Number of Seats</label>
                             <select name="seats_booked" id="seatsBooked" class="form-select">
                                 @for($i = 1; $i <= $trip->available_seats; $i++)
-                                    <option value="{{ $i }}">{{ $i }} {{ $i == 1 ? 'seat' : 'seats' }}</option>
+                                    <option value="{{ $i }}" {{ old('seats_booked', 1) == $i ? 'selected' : '' }}>
+                                        {{ $i }} {{ $i == 1 ? 'seat' : 'seats' }}
+                                    </option>
                                 @endfor
                             </select>
+                            <div class="form-text text-muted mt-2">
+                                Only {{ $trip->available_seats }} seat{{ $trip->available_seats == 1 ? '' : 's' }} left on this trip.
+                            </div>
                         </div>
 
                         <!-- Passenger Contact Info (Dynamic) -->
@@ -285,6 +290,21 @@
         updateTotal();
         updatePassengerFields(parseInt(this.value), false);
     });
+
+    function enforceSeatLimit() {
+        const seatsBooked = document.getElementById('seatsBooked');
+        const maxSeats = {{ $trip->available_seats }};
+        if (!seatsBooked) return;
+
+        if (parseInt(seatsBooked.value, 10) > maxSeats) {
+            seatsBooked.value = String(maxSeats);
+            updateTotal();
+            updatePassengerFields(maxSeats, false);
+        }
+    }
+
+    enforceSeatLimit();
+    document.getElementById('seatsBooked').addEventListener('input', enforceSeatLimit);
 
     function setTotal(text) {
         const a = document.getElementById('totalAmount');

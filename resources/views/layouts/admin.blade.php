@@ -116,6 +116,9 @@
                 <a class="nav-link {{ request()->routeIs('admin.complaints*') ? 'active' : '' }}" href="{{ route('admin.complaints') }}">
                     <i class="bi bi-chat-dots me-2"></i>Complaints
                 </a>
+                <a class="nav-link {{ request()->routeIs('admin.ratings*') ? 'active' : '' }}" href="{{ route('admin.ratings') }}">
+                    <i class="bi bi-star me-2"></i>Ratings & Reviews
+                </a>
                 
                 <div class="nav-section">System</div>
                 <a class="nav-link {{ request()->routeIs('admin.settings*') ? 'active' : '' }}" href="{{ route('admin.settings') }}">
@@ -190,6 +193,9 @@
                         <div class="list-group-item bg-light py-2 fw-bold small text-uppercase text-muted">Support</div>
                         <a class="list-group-item list-group-item-action py-3" href="{{ route('admin.complaints') }}">
                             <i class="bi bi-chat-dots me-3 text-warning"></i>Complaints
+                        </a>
+                        <a class="list-group-item list-group-item-action py-3" href="{{ route('admin.ratings') }}">
+                            <i class="bi bi-star me-3 text-warning"></i>Ratings & Reviews
                         </a>
                         <div class="list-group-item bg-light py-2 fw-bold small text-uppercase text-muted">System</div>
                         <a class="list-group-item list-group-item-action py-3" href="{{ route('admin.settings') }}">

@@ -60,7 +60,11 @@
                 </a>
                 <div class="dropdown">
                     <a class="nav-link text-white dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                        <i class="bi bi-person-circle"></i>
+                        @if(auth()->user()->profile_image)
+                            <img src="{{ asset('storage/' . auth()->user()->profile_image) }}" alt="Profile" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.35);">
+                        @else
+                            <i class="bi bi-person-circle"></i>
+                        @endif
                         <span class="d-none d-md-inline ms-1">{{ auth()->user()->name }}</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
@@ -92,11 +96,14 @@
                 <a class="nav-link {{ request()->routeIs('driver.payouts') ? 'active' : '' }}" href="{{ route('driver.payouts') }}">
                     <i class="bi bi-wallet2 me-2"></i>Payouts
                 </a>
-                <a class="nav-link {{ request()->routeIs('driver.profile') ? 'active' : '' }}" href="{{ route('driver.profile') }}">
-                    <i class="bi bi-person me-2"></i>Profile
-                </a>
                 <a class="nav-link {{ request()->routeIs('driver.feedback*') ? 'active' : '' }}" href="{{ route('driver.feedback') }}">
                     <i class="bi bi-chat-square-text me-2"></i>Feedback
+                </a>
+                <a class="nav-link {{ request()->routeIs('driver.ratings') ? 'active' : '' }}" href="{{ route('driver.ratings') }}">
+                    <i class="bi bi-star me-2"></i>Ratings & Reviews
+                </a>
+                <a class="nav-link {{ request()->routeIs('driver.profile') ? 'active' : '' }}" href="{{ route('driver.profile') }}">
+                    <i class="bi bi-person me-2"></i>Profile
                 </a>
             </nav>
         </div>
@@ -137,6 +144,10 @@
             <a class="nav-link {{ request()->routeIs('driver.payouts') ? 'active' : '' }}" href="{{ route('driver.payouts') }}">
                 <i class="bi bi-wallet2"></i>
                 <span>Payouts</span>
+            </a>
+            <a class="nav-link {{ request()->routeIs('driver.ratings') ? 'active' : '' }}" href="{{ route('driver.ratings') }}">
+                <i class="bi bi-star"></i>
+                <span>Ratings</span>
             </a>
             <a class="nav-link position-relative {{ request()->routeIs('notifications.*') ? 'active' : '' }}" href="{{ route('notifications.index') }}">
                 <i class="bi bi-bell"></i>

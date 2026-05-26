@@ -39,7 +39,11 @@
                                 @foreach($trips as $trip)
                                     <option value="{{ $trip->id }}" {{ old('trip_id') == $trip->id ? 'selected' : '' }}>
                                         {{ $trip->origin_dzongkhag }} → {{ $trip->destination_dzongkhag }} 
-                                        ({{ $trip->departure_datetime->format('M d') }})
+                                        ({{ $trip->departure_datetime->format('M d') }}) 
+                                        @php
+                                            $fuelType = $trip->driver->fuel_type === 'Electric' ? '⚡ Electric' : '🛢️ Fuel';
+                                        @endphp
+                                        [{{ $trip->driver->vehicle_type }} - {{ $fuelType }}]
                                     </option>
                                 @endforeach
                             </select>

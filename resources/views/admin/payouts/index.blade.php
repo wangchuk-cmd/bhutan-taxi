@@ -43,7 +43,7 @@
                             <th>Driver</th>
                             <th>Trip</th>
                             <th>Total Amount</th>
-                            <th>Service (10%)</th>
+                            <th>Service (3%)</th>
                             <th>Payout</th>
                             <th>Status</th>
                             <th>Action</th>

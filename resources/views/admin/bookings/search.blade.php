@@ -59,9 +59,9 @@
         <div>
             <strong>{{ $route->origin_dzongkhag }} → {{ $route->destination_dzongkhag }}</strong>
             <span class="mx-2">|</span>
-            Distance: {{ $route->distance_km }} km
+            Distance: {{ $route->formatted_distance_km }}
             <span class="mx-2">|</span>
-            Estimated Time: {{ $route->estimated_time }}
+            Estimated Time: {{ $route->formatted_estimated_time }}
         </div>
     </div>
 @endif

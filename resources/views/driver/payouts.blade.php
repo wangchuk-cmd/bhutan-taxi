@@ -28,7 +28,7 @@
 
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 20px;
         margin-bottom: 40px;
     }
@@ -36,7 +36,7 @@
     .stat-card {
         background: white;
         border-radius: 12px;
-        padding: 24px;
+        padding: 20px;
         box-shadow: var(--card-shadow);
         border: 1px solid #f0f0f0;
         display: flex;
@@ -64,21 +64,60 @@
     }
 
     .stat-value {
-        font-size: 32px;
+        font-size: clamp(1.6rem, 5vw, 2rem);
         font-weight: 700;
         color: var(--text-dark);
         margin: 0;
     }
 
     .stat-icon {
-        width: 56px;
-        height: 56px;
+        width: 52px;
+        height: 52px;
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 28px;
+        font-size: 24px;
         flex-shrink: 0;
+    }
+
+    @media (min-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .page-title {
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .page-title i {
+            font-size: 22px !important;
+        }
+
+        .stats-grid {
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            padding: 14px;
+            min-height: 110px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            font-size: 20px;
+            border-radius: 10px;
+        }
     }
 
     .stat-icon.success { background: #d1fae5; color: var(--success-color); }

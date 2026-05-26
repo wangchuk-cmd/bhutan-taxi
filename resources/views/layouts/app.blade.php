@@ -127,9 +127,21 @@
                         
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle me-1"></i> {{ auth()->user()->name }}
+                                @if(auth()->user()->profile_image)
+                                    <img src="{{ asset('storage/' . auth()->user()->profile_image) }}" alt="Profile" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;" class="me-1">
+                                @else
+                                    <i class="bi bi-person-circle me-1"></i>
+                                @endif
+                                {{ auth()->user()->name }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
+                                @if(auth()->user()->isPassenger())
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('passenger.profile') }}">
+                                            <i class="bi bi-person-gear me-2"></i>Profile
+                                        </a>
+                                    </li>
+                                @endif
                                 <li>
                                     <a class="dropdown-item" href="{{ route('feedback') }}">
                                         <i class="bi bi-chat-dots me-2"></i> Feedback
@@ -198,7 +210,7 @@
                 <div class="col-md-4 mb-3">
                     <h6>Contact</h6>
                     <p class="text-muted mb-1"><i class="bi bi-envelope me-2"></i>support@bhutantaxi.bt</p>
-                    <p class="text-muted mb-1"><i class="bi bi-telephone me-2"></i>+975-17-123456</p>
+                    <p class="text-muted mb-1"><i class="bi bi-telephone me-2"></i>+975-17832648</p>
                     <p class="text-muted"><i class="bi bi-geo-alt me-2"></i>Thimphu, Bhutan</p>
                 </div>
             </div>

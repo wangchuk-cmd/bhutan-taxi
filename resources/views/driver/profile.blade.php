@@ -171,9 +171,24 @@
                 </div>
             @endif
 
-            <form action="{{ route('driver.profile.update') }}" method="POST">
+            <form action="{{ route('driver.profile.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
+
+                <div class="form-group">
+                    <label class="form-label">Profile Image</label>
+                    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 10px;">
+                        @if(auth()->user()->profile_image)
+                            <img src="{{ asset('storage/' . auth()->user()->profile_image) }}" alt="Profile Image" style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid #e5e7eb;">
+                        @else
+                            <div style="width: 72px; height: 72px; border-radius: 50%; border: 2px solid #e5e7eb; display: flex; align-items: center; justify-content: center; color: #9ca3af; background: #f9fafb;">
+                                <i class="bi bi-person" style="font-size: 28px;"></i>
+                            </div>
+                        @endif
+                        <input type="file" name="profile_image" class="form-input" accept="image/png,image/jpeg,image/webp">
+                    </div>
+                    <p class="form-helper">Accepted: JPG, PNG, WEBP. Max size: 2MB.</p>
+                </div>
                 
                 <div class="form-row">
                     <div class="form-group">

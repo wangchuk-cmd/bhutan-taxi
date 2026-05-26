@@ -8,10 +8,13 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\RatingController;
+use App\Http\Controllers\PassengerProfileController;
 
 // Public Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search', [HomeController::class, 'search'])->name('search');
+Route::get('/all-trips', [HomeController::class, 'viewAll'])->name('trips.all');
 Route::get('/trip/{id}', [HomeController::class, 'tripDetails'])->name('trip.details');
 
 // API Route for real-time trip updates
@@ -41,6 +44,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 
 // Passenger Routes (Authenticated)
 Route::middleware('auth')->group(function () {
+    // Passenger Profile
+    Route::get('/profile', [PassengerProfileController::class, 'show'])->name('passenger.profile');
+    Route::put('/profile', [PassengerProfileController::class, 'update'])->name('passenger.profile.update');
+
     // Bookings
     Route::get('/booking/create/{tripId}', [BookingController::class, 'create'])->name('booking.create');
     Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
@@ -62,6 +69,10 @@ Route::middleware('auth')->group(function () {
     // Complaints/Feedback
     Route::get('/feedback', [NotificationController::class, 'createComplaint'])->name('feedback');
     Route::post('/feedback', [NotificationController::class, 'storeComplaint'])->name('feedback.store');
+
+    // Ratings
+    Route::get('/booking/{bookingId}/rate', [RatingController::class, 'show'])->name('rating.show');
+    Route::post('/booking/{bookingId}/rate', [RatingController::class, 'store'])->name('rating.store');
 });
 
 // Driver Routes
@@ -81,6 +92,9 @@ Route::prefix('driver')->middleware(['auth', 'driver'])->group(function () {
     // Driver Feedback
     Route::get('/feedback', [DriverController::class, 'createFeedback'])->name('driver.feedback');
     Route::post('/feedback', [DriverController::class, 'storeFeedback'])->name('driver.feedback.store');
+
+    // Driver Ratings & Reviews
+    Route::get('/ratings', [RatingController::class, 'driverRatings'])->name('driver.ratings');
 });
 
 // Admin Routes
@@ -105,6 +119,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     
     // Routes Management
     Route::get('/routes', [AdminController::class, 'routes'])->name('admin.routes');
+    Route::post('/routes/generate-all', [AdminController::class, 'generateAllRoutes'])->name('admin.routes.generateAll');
     Route::get('/routes/create', [AdminController::class, 'createRoute'])->name('admin.routes.create');
     Route::post('/routes', [AdminController::class, 'storeRoute'])->name('admin.routes.store');
     Route::get('/routes/{id}/edit', [AdminController::class, 'editRoute'])->name('admin.routes.edit');
@@ -148,10 +163,15 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::post('/complaints/{id}/resolve', [AdminController::class, 'resolveComplaint'])->name('admin.complaints.resolve');
     Route::post('/complaints/{id}/respond', [AdminController::class, 'respondComplaint'])->name('admin.complaints.respond');
     
+    // Ratings & Reviews Management
+    Route::get('/ratings', [RatingController::class, 'adminRatings'])->name('admin.ratings');
+    Route::get('/drivers/{driverId}/ratings', [RatingController::class, 'adminDriverRatings'])->name('admin.driver.ratings');
+    
     // Reports
     Route::get('/reports', [AdminController::class, 'reports'])->name('admin.reports');
     Route::get('/reports/export/trips', [AdminController::class, 'exportTrips'])->name('admin.export.trips');
     Route::get('/reports/export/bookings', [AdminController::class, 'exportBookings'])->name('admin.export.bookings');
+    Route::get('/reports/export/refunds', [AdminController::class, 'exportRefunds'])->name('admin.export.refunds');
     Route::get('/reports/export/payments', [AdminController::class, 'exportPayments'])->name('admin.export.payments');
     Route::get('/reports/export/drivers', [AdminController::class, 'exportDrivers'])->name('admin.export.drivers');
     Route::get('/reports/export/payouts', [AdminController::class, 'exportPayouts'])->name('admin.export.payouts');
