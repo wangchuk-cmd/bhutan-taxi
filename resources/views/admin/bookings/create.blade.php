@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="col-md-6">
                         <label class="form-label">Phone <span class="text-danger">*</span></label>
                         <input type="tel" class="form-control" name="passengers[${i}][phone]" 
-                               placeholder="Enter phone number" pattern="[0-9]+" inputmode="numeric" required>
+                               placeholder="Enter phone number" pattern="{{ \App\Models\Setting::getPhoneNumberPattern() }}" maxlength="{{ \App\Models\Setting::getPhoneNumberDigits() }}" inputmode="numeric" title="{{ \App\Models\Setting::getPhoneNumberHint() }}" required>
                     </div>
                 </div>
             `;

@@ -45,7 +45,7 @@
                                 <span class="input-group-text"><i class="bi bi-telephone"></i></span>
                                 <input type="tel" name="phone_number" class="form-control" 
                                        value="{{ old('phone_number') }}" placeholder="e.g., 17123456" 
-                                       pattern="[0-9]+" inputmode="numeric" required>
+                                        pattern="{{ \App\Models\Setting::getPhoneNumberPattern() }}" maxlength="{{ \App\Models\Setting::getPhoneNumberDigits() }}" inputmode="numeric" title="{{ \App\Models\Setting::getPhoneNumberHint() }}" required>
                             </div>
                         </div>
 

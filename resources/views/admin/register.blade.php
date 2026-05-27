@@ -77,7 +77,7 @@
             </div>
             <div class="form-group">
                 <label for="phone_number">Phone Number</label>
-                <input type="text" name="phone_number" id="phone_number" required>
+                <input type="text" name="phone_number" id="phone_number" maxlength="{{ \App\Models\Setting::getPhoneNumberDigits() }}" pattern="{{ \App\Models\Setting::getPhoneNumberPattern() }}" title="{{ \App\Models\Setting::getPhoneNumberHint() }}" required>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>

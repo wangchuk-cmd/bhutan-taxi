@@ -235,6 +235,63 @@
     border-color: #cfdef6;
 }
 
+.home-luxe .how-section .row {
+    align-items: stretch;
+}
+
+.home-luxe .how-card {
+    height: 100%;
+    min-height: 184px;
+    padding: 1rem 1rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0.55rem;
+    overflow: hidden;
+}
+
+.home-luxe .how-card .how-num {
+    align-self: flex-end;
+    color: #c9d5e6;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    line-height: 1;
+}
+
+.home-luxe .how-card .how-icon-wrap {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+
+.home-luxe .how-card .how-icon-wrap i {
+    font-size: 1.25rem;
+}
+
+.home-luxe .how-card .how-title {
+    margin: 0;
+    color: #1f2d4a;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    min-height: 2.3em;
+}
+
+.home-luxe .how-card .how-desc {
+    margin: 0;
+    color: #6b7c97;
+    font-size: 0.84rem;
+    line-height: 1.32;
+    min-height: 2.7em;
+    overflow-wrap: anywhere;
+}
+
 .home-luxe .tcv2-header {
     background: linear-gradient(135deg, #eef5ff 0%, #f8fbff 100%);
 }
@@ -278,13 +335,111 @@
 }
 
 .home-luxe .cta-card {
+    position: relative;
+    overflow: hidden;
     border-radius: 24px;
+    padding: clamp(2rem, 4vw, 3.5rem) 1.5rem;
     box-shadow: 0 22px 42px rgba(17, 48, 113, 0.26);
+    border: 1px solid rgba(154, 193, 255, 0.24);
+    background:
+        radial-gradient(circle at 18% 22%, rgba(95, 151, 255, 0.18) 0 2px, transparent 2.5px),
+        radial-gradient(circle at 78% 28%, rgba(255, 255, 255, 0.14) 0 2px, transparent 2.5px),
+        radial-gradient(circle at 72% 72%, rgba(89, 154, 255, 0.16) 0 2px, transparent 2.5px),
+        linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px),
+        linear-gradient(125deg, var(--hero-deep) 0%, var(--hero-mid) 70%, #233d66 100%);
+    background-size: 220px 220px, 260px 260px, 240px 240px, 72px 72px, 72px 72px, auto;
+    background-position: 0 0, 40px 40px, 100px 110px, 0 0, 0 0, center;
+    color: #f8fbff;
+}
+
+.home-luxe .cta-card::before,
+.home-luxe .cta-card::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+}
+
+.home-luxe .cta-card::before {
+    width: 540px;
+    height: 540px;
+    left: -180px;
+    top: -140px;
+    background: radial-gradient(circle, rgba(95, 151, 255, 0.32) 0%, rgba(95, 151, 255, 0) 70%);
+}
+
+.home-luxe .cta-card::after {
+    width: 460px;
+    height: 460px;
+    right: -170px;
+    bottom: -140px;
+    background: radial-gradient(circle, rgba(55, 98, 206, 0.32) 0%, rgba(55, 98, 206, 0) 70%);
 }
 
 .home-luxe .cta-card .btn {
     border-radius: 12px;
     font-weight: 700;
+}
+
+.home-luxe .cta-card .cta-icon,
+.home-luxe .cta-card .cta-title,
+.home-luxe .cta-card .cta-sub {
+    position: relative;
+    z-index: 1;
+}
+
+.home-luxe .cta-card .cta-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    margin-bottom: 0.75rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    font-size: 2rem;
+    color: #d9e8ff;
+    backdrop-filter: blur(8px);
+}
+
+.home-luxe .cta-card .cta-title {
+    color: #f8fbff;
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.8rem;
+}
+
+.home-luxe .cta-card .cta-sub {
+    color: rgba(232, 240, 255, 0.9);
+    max-width: 640px;
+    margin: 0 auto 1.5rem;
+}
+
+.home-luxe .cta-card .btn-primary {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: #2563eb;
+    box-shadow: 0 10px 22px rgba(17, 48, 113, 0.22);
+}
+
+.home-luxe .cta-card .btn-primary:hover {
+    background: #eff6ff;
+    border-color: #eff6ff;
+    color: #1d4ed8;
+}
+
+.home-luxe .cta-card .btn-outline-primary {
+    border-color: rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.home-luxe .cta-card .btn-outline-primary:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.36);
+    color: #ffffff;
 }
 
 .home-luxe .trips-section .trip-card-v2,
@@ -391,6 +546,33 @@
     .home-luxe .how-section .row,
     .home-luxe .benefits-section .row {
         --bs-gutter-y: 0.75rem;
+    }
+
+    .home-luxe .how-card {
+        min-height: 168px;
+        padding: 0.9rem 0.9rem 1rem;
+        gap: 0.45rem;
+    }
+
+    .home-luxe .how-card .how-title {
+        font-size: 0.92rem;
+        min-height: 2.1em;
+    }
+
+    .home-luxe .how-card .how-desc {
+        font-size: 0.78rem;
+        line-height: 1.28;
+        min-height: 2.5em;
+    }
+
+    .home-luxe .how-card .how-icon-wrap {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+    }
+
+    .home-luxe .how-card .how-icon-wrap i {
+        font-size: 1.1rem;
     }
 
     .home-luxe .stats-row {
@@ -564,8 +746,12 @@
                             <i class="bi bi-clock text-primary"></i>
                             <span>{{ $trip->departure_datetime->format('h:i A') }}</span>
                         </div>
-                        <div class="tcv2-meta-item">
-                            <i class="bi bi-person-circle text-primary"></i>
+                        <div class="tcv2-meta-item d-flex align-items-center gap-2">
+                            @if($trip->driver->user->profile_image)
+                                <img src="{{ asset('storage/' . $trip->driver->user->profile_image) }}" alt="{{ $trip->driver->user->name }}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(37, 99, 235, 0.18);">
+                            @else
+                                <i class="bi bi-person-circle text-primary"></i>
+                            @endif
                             <span>{{ $trip->driver->user->name }}</span>
                         </div>
                         @if($trip->driver->average_rating > 0)

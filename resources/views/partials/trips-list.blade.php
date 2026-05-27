@@ -20,8 +20,29 @@
                         {{-- Driver Info with Rating --}}
                         <div class="mb-3 pb-3 border-bottom">
                             <div class="d-flex align-items-center gap-2 mb-2">
-                                <i class="bi bi-person-circle text-primary" style="font-size: 1.2rem;"></i>
-                                <strong>{{ $trip->driver->user->name }}</strong>
+                                @if($trip->driver->user->profile_image)
+                                    <img src="{{ asset('storage/' . $trip->driver->user->profile_image) }}" alt="{{ $trip->driver->user->name }}" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1px solid #dbe4f0;">
+                                @else
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width: 34px; height: 34px; flex: 0 0 auto;">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                @endif
+                                <div>
+                                    <strong>{{ $trip->driver->user->name }}</strong>
+                                    @if($trip->driver->show_age_range_to_public || $trip->driver->show_experience_to_public)
+                                        <div class="text-muted small mt-1">
+                                            @if($trip->driver->show_age_range_to_public && $trip->driver->age_range)
+                                                <span>Age {{ $trip->driver->age_range }}</span>
+                                            @endif
+                                            @if($trip->driver->show_experience_to_public && $trip->driver->years_of_experience !== null)
+                                                @if($trip->driver->show_age_range_to_public && $trip->driver->age_range)
+                                                    ·
+                                                @endif
+                                                <span>Experience {{ $trip->driver->years_of_experience }} years</span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
                             @if(($trip->driver->average_rating ?? 0) > 0)
                                 <div class="d-flex align-items-center gap-2" style="font-size: 0.85rem;">
@@ -42,6 +63,7 @@
                                     <i class="bi bi-star text-warning"></i> No ratings yet
                                 </div>
                             @endif
+
                         </div>
 
                         {{-- Trip Details Grid --}}

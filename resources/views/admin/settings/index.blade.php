@@ -85,6 +85,36 @@
         </div>
     </div>
 
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-arrow-counterclockwise me-2"></i>Refund Policy</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Refund Review Deadline</label>
+                    <div class="input-group">
+                        <input type="number" min="1" max="168"
+                               class="form-control @error('refund_request_deadline_hours') is-invalid @enderror"
+                               name="refund_request_deadline_hours"
+                               value="{{ old('refund_request_deadline_hours', $settings['refund_request_deadline_hours']) }}">
+                        <span class="input-group-text">hours before departure</span>
+                    </div>
+                    <small class="text-muted">Requests submitted within this window are highlighted for urgent admin review.</small>
+                    @error('refund_request_deadline_hours')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="col-md-6 mb-3 d-flex align-items-end">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="refund_requires_transaction_id" name="refund_requires_transaction_id" value="1" {{ old('refund_requires_transaction_id', $settings['refund_requires_transaction_id']) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="refund_requires_transaction_id">Require transaction ID for refund requests</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Payout Settings -->
     <div class="card mb-4">
         <div class="card-header">
@@ -102,6 +132,71 @@
                     </select>
                     <small class="text-muted">Select 'Immediate' to pay drivers instantly, or choose hours for scheduled payout.</small>
                     @error('driver_payout_time')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-telephone me-2"></i>Phone Validation</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">Control the phone number format used by passenger, driver, and admin forms.</p>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Phone Number Digits</label>
+                    <input type="number" min="1" max="20" class="form-control @error('phone_number_digits') is-invalid @enderror" name="phone_number_digits" value="{{ old('phone_number_digits', $settings['phone_number_digits']) }}">
+                    @error('phone_number_digits')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="col-md-8 mb-3">
+                    <label class="form-label">Allowed Prefixes</label>
+                    <input type="text" class="form-control @error('phone_number_prefixes') is-invalid @enderror" name="phone_number_prefixes" value="{{ old('phone_number_prefixes', $settings['phone_number_prefixes']) }}" placeholder="16,17">
+                    <small class="text-muted">Comma-separated prefixes, for example: 16,17</small>
+                    @error('phone_number_prefixes')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-bank me-2"></i>Bank Account Validation</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">Set the account number length for each bank. These values can be changed later by admin.</p>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">BoB Account Digits</label>
+                    <input type="number" min="1" max="20" class="form-control @error('bob_account_digits') is-invalid @enderror" name="bob_account_digits" value="{{ old('bob_account_digits', $settings['bob_account_digits']) }}">
+                    @error('bob_account_digits')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">BNB Account Digits</label>
+                    <input type="number" min="1" max="20" class="form-control @error('bnb_account_digits') is-invalid @enderror" name="bnb_account_digits" value="{{ old('bnb_account_digits', $settings['bnb_account_digits']) }}">
+                    @error('bnb_account_digits')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">DK Account Digits</label>
+                    <input type="number" min="1" max="20" class="form-control @error('dk_account_digits') is-invalid @enderror" name="dk_account_digits" value="{{ old('dk_account_digits', $settings['dk_account_digits']) }}">
+                    @error('dk_account_digits')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">T Bank Account Digits</label>
+                    <input type="number" min="1" max="20" class="form-control @error('t_bank_account_digits') is-invalid @enderror" name="t_bank_account_digits" value="{{ old('t_bank_account_digits', $settings['t_bank_account_digits']) }}">
+                    @error('t_bank_account_digits')
                         <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
                 </div>

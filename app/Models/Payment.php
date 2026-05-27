@@ -11,6 +11,7 @@ class Payment extends Model
         'amount',
         'status',
         'payment_method',
+        'transaction_id',
         'transaction_time',
     ];
 
@@ -27,5 +28,10 @@ class Payment extends Model
     public function scopeCompleted($query)
     {
         return $query->where('status', 'completed');
+    }
+
+    public function scopeRefunded($query)
+    {
+        return $query->where('status', 'refunded');
     }
 }

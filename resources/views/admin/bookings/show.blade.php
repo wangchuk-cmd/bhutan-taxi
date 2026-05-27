@@ -94,6 +94,10 @@
                         <div class="col-6"><span class="text-muted">Method</span></div>
                         <div class="col-6">{{ ucfirst($booking->payment->payment_method) }}</div>
                     </div>
+                    <div class="row mb-2">
+                        <div class="col-6"><span class="text-muted">Transaction ID</span></div>
+                        <div class="col-6 text-break">{{ $booking->payment->transaction_id ?? 'N/A' }}</div>
+                    </div>
                     <div class="row">
                         <div class="col-6"><span class="text-muted">Amount</span></div>
                         <div class="col-6"><strong>Nu. {{ number_format($booking->payment->amount) }}</strong></div>
@@ -110,6 +114,32 @@
                 @endif
             </div>
         </div>
+
+        @if($booking->latestRefundRequest)
+        <div class="card mt-4">
+            <div class="card-header"><h6 class="mb-0">Refund Request</h6></div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-6"><span class="text-muted">Status</span></div>
+                    <div class="col-6"><span class="badge bg-info text-capitalize">{{ $booking->latestRefundRequest->status }}</span></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-6"><span class="text-muted">Transaction</span></div>
+                    <div class="col-6 text-break">{{ $booking->latestRefundRequest->transaction_id ?? 'N/A' }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-6"><span class="text-muted">Reason</span></div>
+                    <div class="col-6">{{ $booking->latestRefundRequest->reason }}</div>
+                </div>
+                @if($booking->latestRefundRequest->admin_notes)
+                    <div class="row">
+                        <div class="col-6"><span class="text-muted">Admin Notes</span></div>
+                        <div class="col-6">{{ $booking->latestRefundRequest->admin_notes }}</div>
+                    </div>
+                @endif
+            </div>
+        </div>
+        @endif
     </div>
 </div>
 @endsection

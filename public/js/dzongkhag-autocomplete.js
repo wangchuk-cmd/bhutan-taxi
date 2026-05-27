@@ -31,7 +31,54 @@ class DzongkhagAutocomplete {
         this.init();
     }
 
+    injectStyles() {
+        if (document.getElementById('dzongkhag-autocomplete-styles')) return;
+
+        const style = document.createElement('style');
+        style.id = 'dzongkhag-autocomplete-styles';
+        style.textContent = `
+            .dzongkhag-autocomplete-wrapper {
+                position: relative;
+            }
+
+            .dzongkhag-dropdown {
+                background: #ffffff;
+                border: 1px solid rgba(15, 23, 42, 0.12);
+                border-radius: 12px;
+                box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+                max-height: 220px;
+                overflow-y: auto;
+                overflow-x: hidden;
+                padding: 8px;
+            }
+
+            .dzongkhag-item,
+            .dzongkhag-no-results {
+                border-radius: 10px;
+                font-size: 13px;
+            }
+
+            .dzongkhag-item {
+                display: flex;
+                align-items: center;
+                padding: 8px 12px;
+                cursor: pointer;
+                transition: background-color 0.15s ease, color 0.15s ease;
+                line-height: 1.2;
+            }
+
+            .dzongkhag-item:hover,
+            .dzongkhag-item.active {
+                background: #eef4ff;
+                color: #1d4ed8;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     init() {
+        this.injectStyles();
+
         // Wrap input in container (for CSS hooks only, not for dropdown positioning)
         const wrapper = document.createElement('div');
         wrapper.className = 'dzongkhag-autocomplete-wrapper';
@@ -41,7 +88,7 @@ class DzongkhagAutocomplete {
         // Append dropdown to body so overflow:hidden on cards never clips it
         this.dropdown = document.createElement('div');
         this.dropdown.className = 'dzongkhag-dropdown';
-        this.dropdown.style.cssText = 'display:none;position:fixed;z-index:99999;';
+        this.dropdown.style.cssText = 'display:none;position:fixed;z-index:99999;min-width:240px;';
         document.body.appendChild(this.dropdown);
 
         // Add autocomplete attribute
@@ -53,9 +100,18 @@ class DzongkhagAutocomplete {
 
     positionDropdown() {
         const rect = this.input.getBoundingClientRect();
-        this.dropdown.style.top    = (rect.bottom + 1) + 'px';
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const preferredTop = rect.bottom + 6;
+        const maxHeight = Math.min(220, Math.floor(viewportHeight * 0.32));
+        const spaceBelow = viewportHeight - preferredTop - 12;
+        const shouldOpenUp = spaceBelow < 140 && rect.top > 140;
+
+        this.dropdown.style.maxHeight = maxHeight + 'px';
+        this.dropdown.style.top = shouldOpenUp
+            ? Math.max(12, rect.top - maxHeight - 6) + 'px'
+            : preferredTop + 'px';
         this.dropdown.style.left   = rect.left + 'px';
-        this.dropdown.style.width  = rect.width + 'px';
+        this.dropdown.style.width  = Math.max(rect.width, 240) + 'px';
     }
 
     bindEvents() {

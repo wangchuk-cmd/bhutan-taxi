@@ -53,12 +53,13 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20|regex:/^[0-9]+$/|unique:users',
+            'phone_number' => ['required', 'string', 'size:' . \App\Models\Setting::getPhoneNumberDigits(), 'regex:' . \App\Models\Setting::getPhoneNumberRegex(), 'unique:users'],
             'email' => 'required|email|unique:users',
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'password' => ['required', 'confirmed', Password::min(8)],
         ], [
-            'phone_number.regex' => 'Phone number must contain only digits.',
+            'phone_number.size' => \App\Models\Setting::getPhoneNumberHint(),
+            'phone_number.regex' => \App\Models\Setting::getPhoneNumberHint(),
         ]);
 
         $profileImagePath = null;
@@ -89,16 +90,18 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20|regex:/^[0-9]+$/|unique:users',
+            'phone_number' => ['required', 'string', 'size:' . \App\Models\Setting::getPhoneNumberDigits(), 'regex:' . \App\Models\Setting::getPhoneNumberRegex(), 'unique:users'],
             'email' => 'required|email|unique:users',
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'date_of_birth' => 'required|date|before:today',
             'password' => ['required', 'confirmed', Password::min(8)],
             'license_number' => 'required|string|max:50|unique:drivers',
             'taxi_plate_number' => 'required|string|max:50|unique:drivers',
             'vehicle_type' => 'required|string|max:50',
             'fuel_type' => 'required|in:Fuel,Electric',
         ], [
-            'phone_number.regex' => 'Phone number must contain only digits.',
+            'phone_number.size' => \App\Models\Setting::getPhoneNumberHint(),
+            'phone_number.regex' => \App\Models\Setting::getPhoneNumberHint(),
         ]);
 
         $profileImagePath = null;
@@ -119,6 +122,7 @@ class AuthController extends Controller
             'user_id' => $user->id,
             'license_number' => $validated['license_number'],
             'taxi_plate_number' => $validated['taxi_plate_number'],
+            'date_of_birth' => $validated['date_of_birth'],
             'vehicle_type' => $validated['vehicle_type'],
             'fuel_type' => $validated['fuel_type'],
             'verified' => false,

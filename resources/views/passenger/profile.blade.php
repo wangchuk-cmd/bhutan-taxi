@@ -60,7 +60,7 @@
 
                             <div class="col-md-6">
                                 <label class="form-label">Phone Number</label>
-                                <input type="tel" name="phone_number" class="form-control" value="{{ old('phone_number', $user->phone_number) }}" pattern="[0-9]+" inputmode="numeric" required>
+                                <input type="tel" name="phone_number" class="form-control" value="{{ old('phone_number', $user->phone_number) }}" pattern="{{ \App\Models\Setting::getPhoneNumberPattern() }}" maxlength="{{ \App\Models\Setting::getPhoneNumberDigits() }}" inputmode="numeric" title="{{ \App\Models\Setting::getPhoneNumberHint() }}" required>
                             </div>
 
                             <div class="col-12">

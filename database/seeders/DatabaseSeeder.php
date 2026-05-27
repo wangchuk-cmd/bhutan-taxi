@@ -92,6 +92,12 @@ class DatabaseSeeder extends Seeder
         Setting::set('site_name', 'Bhutan Taxi', 'string', 'Site name');
         Setting::set('contact_email', 'support@bhutantaxi.bt', 'string', 'Contact email');
         Setting::set('contact_phone', '+975 17 100 100', 'string', 'Contact phone');
+        Setting::set('phone_number_digits', '8', 'integer', 'Passenger/driver phone number total digits');
+        Setting::set('phone_number_prefixes', '16,17', 'string', 'Allowed phone number prefixes separated by commas');
+        Setting::set('bob_account_digits', '9', 'integer', 'BoB account number digits');
+        Setting::set('bnb_account_digits', '9', 'integer', 'BNB account number digits');
+        Setting::set('dk_account_digits', '12', 'integer', 'DK account number digits');
+        Setting::set('t_bank_account_digits', '12', 'integer', 'T Bank account number digits');
 
         $this->command->info('Database seeded successfully!');
         $this->command->info('Admin: admin@bhutantaxi.bt / admin123');

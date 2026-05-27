@@ -39,7 +39,7 @@ class NotificationController extends Controller
     public function createComplaint()
     {
         // Get user's trips from their bookings
-        $trips = Trip::with(['driver:id,user_id,vehicle_type,fuel_type', 'driver.user:id,name'])
+        $trips = Trip::with(['driver:id,user_id,vehicle_type,fuel_type', 'driver.user:id,name,profile_image'])
             ->whereIn('id', function($query) {
                 $query->select('trip_id')
                     ->from('bookings')

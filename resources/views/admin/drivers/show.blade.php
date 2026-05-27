@@ -33,6 +33,8 @@
             <div class="card-body">
                 <p class="mb-2"><strong>Type:</strong> {{ $driver->vehicle_type }}</p>
                 <p class="mb-2"><strong>Plate:</strong> {{ $driver->taxi_plate_number }}</p>
+                <p class="mb-2"><strong>Date of Birth:</strong> {{ optional($driver->date_of_birth)->format('d M Y') ?? 'N/A' }}</p>
+                <p class="mb-2"><strong>Age:</strong> {{ $driver->age ?? 'N/A' }} years</p>
                 <p class="mb-0"><strong>License:</strong> {{ $driver->license_number }}</p>
             </div>
         </div>

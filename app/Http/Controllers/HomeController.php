@@ -16,7 +16,7 @@ class HomeController extends Controller
         $featuredTrips = Cache::remember($cacheKey, 600, function () {
             return Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
                                'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
-                ->with(['driver:id,user_id,vehicle_type,fuel_type,average_rating,rating_count', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
+                ->with(['driver:id,user_id,vehicle_type,fuel_type,taxi_plate_number,years_of_experience,show_experience_to_public,show_age_range_to_public,public_age_range,average_rating,rating_count', 'driver.user:id,name,profile_image', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
                 ->active()
                 ->whereBetween('departure_datetime', [now(), now()->addDays(7)])
                 ->where('available_seats', '>', 0)
@@ -44,7 +44,7 @@ class HomeController extends Controller
         // No caching for viewAll - fetch fresh data every time
         $query = Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
                            'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
-            ->with(['driver:id,user_id,vehicle_type,fuel_type,average_rating,rating_count', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
+            ->with(['driver:id,user_id,vehicle_type,fuel_type,taxi_plate_number,years_of_experience,show_experience_to_public,show_age_range_to_public,public_age_range,average_rating,rating_count', 'driver.user:id,name,profile_image', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
             ->active()
             ->where('available_seats', '>', 0);
 
@@ -90,7 +90,7 @@ class HomeController extends Controller
         
         $query = Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
                            'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
-            ->with(['driver:id,user_id,vehicle_type,fuel_type,average_rating,rating_count', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
+            ->with(['driver:id,user_id,vehicle_type,fuel_type,taxi_plate_number,years_of_experience,show_experience_to_public,show_age_range_to_public,public_age_range,average_rating,rating_count', 'driver.user:id,name,profile_image', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
             ->active()
             ->whereDate('departure_datetime', $date)
             ->where('available_seats', '>', 0);
@@ -131,7 +131,7 @@ class HomeController extends Controller
         $trip = Cache::remember('trip_' . $id, 600, function () use ($id) {
             return Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
                                'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
-                ->with(['driver:id,user_id,vehicle_type,fuel_type,average_rating,rating_count', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time', 'bookings:id,trip_id,passenger_id'])
+                ->with(['driver:id,user_id,vehicle_type,fuel_type,taxi_plate_number,years_of_experience,show_experience_to_public,show_age_range_to_public,public_age_range,average_rating,rating_count', 'driver.user:id,name,profile_image', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time', 'bookings:id,trip_id,passenger_id'])
                 ->findOrFail($id);
         });
 
@@ -158,7 +158,7 @@ class HomeController extends Controller
         $trips = Cache::remember($cacheKey, 180, function () use ($from, $to, $date) {
             return Trip::select(['id', 'driver_id', 'route_id', 'origin_dzongkhag', 'destination_dzongkhag', 
                                'departure_datetime', 'total_seats', 'available_seats', 'price_per_seat', 'status'])
-                ->with(['driver:id,user_id,vehicle_type,fuel_type,average_rating,rating_count', 'driver.user:id,name', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
+                ->with(['driver:id,user_id,vehicle_type,fuel_type,taxi_plate_number,years_of_experience,show_experience_to_public,show_age_range_to_public,public_age_range,average_rating,rating_count', 'driver.user:id,name,profile_image', 'route:id,origin_dzongkhag,destination_dzongkhag,distance_km,estimated_time'])
                 ->whereRaw('LOWER(TRIM(origin_dzongkhag)) = ?', [strtolower($from)])
                 ->whereRaw('LOWER(TRIM(destination_dzongkhag)) = ?', [strtolower($to)])
                 ->active()

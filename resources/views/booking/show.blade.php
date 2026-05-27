@@ -62,11 +62,30 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="d-flex mb-3">
-                                <i class="bi bi-person-circle text-success me-3 fs-4"></i>
+                            <div class="d-flex align-items-center mb-3">
+                                @if($booking->trip->driver->user->profile_image)
+                                    <img src="{{ asset('storage/' . $booking->trip->driver->user->profile_image) }}" alt="{{ $booking->trip->driver->user->name }}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #d1fae5; margin-right: 14px;">
+                                @else
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle bg-success-subtle text-success me-3" style="width: 42px; height: 42px; flex: 0 0 auto;">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                @endif
                                 <div>
                                     <small class="text-muted d-block">Driver</small>
                                     <strong>{{ $booking->trip->driver->user->name }}</strong>
+                                    @if($booking->trip->driver->show_age_range_to_public || $booking->trip->driver->show_experience_to_public)
+                                        <div class="text-muted small mt-1">
+                                            @if($booking->trip->driver->show_age_range_to_public && $booking->trip->driver->age_range)
+                                                <span>Age {{ $booking->trip->driver->age_range }}</span>
+                                            @endif
+                                            @if($booking->trip->driver->show_experience_to_public && $booking->trip->driver->years_of_experience !== null)
+                                                @if($booking->trip->driver->show_age_range_to_public && $booking->trip->driver->age_range)
+                                                    ·
+                                                @endif
+                                                <span>Experience {{ $booking->trip->driver->years_of_experience }} years</span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
 
@@ -123,6 +142,7 @@
                                     <strong>{{ $booking->trip->driver->vehicle_type }} ({{ $booking->trip->driver->fuel_type === 'Electric' ? '⚡ Electric' : '🛢️ Fuel' }})</strong>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -218,11 +238,15 @@
                             <span>Payment Method</span>
                             <span class="text-capitalize">{{ $booking->payment->payment_method }}</span>
                         </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Transaction ID</span>
+                            <span class="text-break small">{{ $booking->payment->transaction_id ?? 'N/A' }}</span>
+                        </div>
                     @endif
-                    @if($booking->refund_status !== 'none')
+                    @if($booking->latestRefundRequest)
                         <div class="d-flex justify-content-between">
                             <span>Refund Status</span>
-                            <span class="badge bg-info text-capitalize">{{ $booking->refund_status }}</span>
+                            <span class="badge bg-info text-capitalize">{{ $booking->latestRefundRequest->status }}</span>
                         </div>
                     @endif
                     
@@ -299,6 +323,34 @@
                             @csrf
                             <button type="button" class="btn btn-danger w-100" onclick="showConfirmModal('Are you sure you want to cancel this booking? You will receive a full refund.', 'Cancel Booking', function() { document.getElementById('cancelBookingForm').submit(); })">
                                 <i class="bi bi-x-circle me-2"></i>Cancel Booking
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @endif
+
+            @if($booking->payment_status === 'paid' && !$booking->latestRefundRequest)
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h5 class="card-title mb-2">Request Refund</h5>
+                        <p class="text-muted small mb-3">
+                            If you booked by mistake or paid the wrong amount, submit a refund request for admin review.
+                        </p>
+                        <form action="{{ route('booking.refund.request', $booking->id) }}" method="POST">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="form-label">Transaction ID</label>
+                                <input type="text" name="transaction_id" class="form-control" value="{{ old('transaction_id', $booking->payment->transaction_id ?? '') }}" placeholder="Enter payment transaction ID">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Reason</label>
+                                <textarea name="reason" class="form-control @error('reason') is-invalid @enderror" rows="4" placeholder="Explain why you need a refund">{{ old('reason') }}</textarea>
+                                @error('reason')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <button type="submit" class="btn btn-warning w-100">
+                                <i class="bi bi-arrow-counterclockwise me-2"></i>Submit Refund Request
                             </button>
                         </form>
                     </div>

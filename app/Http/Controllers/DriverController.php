@@ -277,7 +277,9 @@ class DriverController extends Controller
             Notification::send(
                 $booking->passenger_id,
                 'cancellation',
-                'Your booked trip ' . $trip->origin_dzongkhag . ' → ' . $trip->destination_dzongkhag . ' on ' . $trip->departure_datetime->format('M d, Y') . ' has been cancelled by the driver. Full refund processed.'
+                'Your booked trip ' . $trip->origin_dzongkhag . ' → ' . $trip->destination_dzongkhag . ' on ' . $trip->departure_datetime->format('M d, Y') . ' has been cancelled by the driver. Full refund processed.',
+                null,
+                ['url' => route('bookings.show', $booking->id)]
             );
         }
 
@@ -318,6 +320,140 @@ class DriverController extends Controller
         return view('driver.payouts', compact('payouts', 'totalPaid', 'pendingAmount'));
     }
 
+    public function reports(Request $request)
+    {
+        $driver = Auth::user()->driver;
+
+        $period = $request->get('period', 'monthly');
+        if (!in_array($period, ['daily', 'weekly', 'monthly', 'yearly'])) {
+            $period = 'monthly';
+        }
+
+        [$start, $end, $labels, $keys, $bucketFormat] = $this->buildReportBuckets($period);
+
+        $payouts = Payout::with('trip')
+            ->where('driver_id', $driver->id)
+            ->where('status', 'completed')
+            ->whereRaw('COALESCE(paid_at, created_at) BETWEEN ? AND ?', [$start, $end])
+            ->get();
+
+        $seriesMap = array_fill_keys($keys, 0.0);
+
+        foreach ($payouts as $payout) {
+            $timestamp = $payout->paid_at ?? $payout->created_at;
+            if (!$timestamp) {
+                continue;
+            }
+
+            $bucketKey = $timestamp->format($bucketFormat);
+            if (array_key_exists($bucketKey, $seriesMap)) {
+                $seriesMap[$bucketKey] += (float) $payout->payout_amount;
+            }
+        }
+
+        $earningsSeries = array_map(fn ($key) => round($seriesMap[$key], 2), $keys);
+        $periodEarnings = (float) $payouts->sum('payout_amount');
+        $completedPayouts = (int) $payouts->count();
+        $averagePayout = $completedPayouts > 0 ? ($periodEarnings / $completedPayouts) : 0;
+
+        $completedTrips = Trip::where('driver_id', $driver->id)
+            ->where('status', 'completed')
+            ->whereBetween('updated_at', [$start, $end])
+            ->count();
+
+        $cancelledTrips = Trip::where('driver_id', $driver->id)
+            ->where('status', 'cancelled')
+            ->whereBetween('updated_at', [$start, $end])
+            ->count();
+
+        $activeTrips = Trip::where('driver_id', $driver->id)
+            ->where('status', 'active')
+            ->count();
+
+        $topRoutes = $payouts
+            ->groupBy(function ($payout) {
+                $origin = $payout->trip->origin_dzongkhag ?? 'Unknown';
+                $destination = $payout->trip->destination_dzongkhag ?? 'Unknown';
+
+                return $origin . ' -> ' . $destination;
+            })
+            ->map(function ($routePayouts, $route) {
+                return [
+                    'route' => $route,
+                    'earnings' => (float) $routePayouts->sum('payout_amount'),
+                    'count' => $routePayouts->count(),
+                ];
+            })
+            ->sortByDesc('earnings')
+            ->take(5)
+            ->values();
+
+        return view('driver.reports', compact(
+            'period',
+            'labels',
+            'earningsSeries',
+            'periodEarnings',
+            'completedPayouts',
+            'averagePayout',
+            'completedTrips',
+            'cancelledTrips',
+            'activeTrips',
+            'topRoutes'
+        ));
+    }
+
+    private function buildReportBuckets(string $period): array
+    {
+        $now = now();
+        $labels = [];
+        $keys = [];
+
+        if ($period === 'daily') {
+            $start = $now->copy()->startOfDay();
+            $end = $now->copy()->endOfDay();
+            $bucketFormat = 'Y-m-d H';
+
+            for ($hour = 0; $hour < 24; $hour++) {
+                $slot = $start->copy()->addHours($hour);
+                $labels[] = $slot->format('H:00');
+                $keys[] = $slot->format($bucketFormat);
+            }
+        } elseif ($period === 'weekly') {
+            $start = $now->copy()->startOfDay()->subDays(6);
+            $end = $now->copy()->endOfDay();
+            $bucketFormat = 'Y-m-d';
+
+            for ($day = 0; $day < 7; $day++) {
+                $slot = $start->copy()->addDays($day);
+                $labels[] = $slot->format('D');
+                $keys[] = $slot->format($bucketFormat);
+            }
+        } elseif ($period === 'yearly') {
+            $start = $now->copy()->startOfYear();
+            $end = $now->copy()->endOfYear();
+            $bucketFormat = 'Y-m';
+
+            for ($month = 1; $month <= 12; $month++) {
+                $slot = $start->copy()->month($month);
+                $labels[] = $slot->format('M');
+                $keys[] = $slot->format($bucketFormat);
+            }
+        } else {
+            $start = $now->copy()->startOfMonth();
+            $end = $now->copy()->endOfMonth();
+            $bucketFormat = 'Y-m-d';
+            $daysInMonth = (int) $start->daysInMonth;
+
+            for ($day = 1; $day <= $daysInMonth; $day++) {
+                $slot = $start->copy()->day($day);
+                $labels[] = $slot->format('d M');
+                $keys[] = $slot->format($bucketFormat);
+            }
+        }
+
+        return [$start, $end, $labels, $keys, $bucketFormat];
+    }
+
     public function profile()
     {
         $driver = Auth::user()->driver;
@@ -331,12 +467,18 @@ class DriverController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20|regex:/^[0-9]+$/|unique:users,phone_number,' . $user->id,
+            'phone_number' => ['required', 'string', 'size:' . \App\Models\Setting::getPhoneNumberDigits(), 'regex:' . \App\Models\Setting::getPhoneNumberRegex(), 'unique:users,phone_number,' . $user->id],
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'date_of_birth' => 'nullable|date|before:today',
             'vehicle_type' => 'required|string|max:50',
             'fuel_type' => 'required|in:Fuel,Electric',
+            'years_of_experience' => 'nullable|integer|min:0|max:70',
+            'public_age_range' => 'nullable|string|max:30',
+            'show_experience_to_public' => 'nullable|in:1',
+            'show_age_range_to_public' => 'nullable|in:1',
         ], [
-            'phone_number.regex' => 'Phone number must contain only digits.',
+            'phone_number.size' => \App\Models\Setting::getPhoneNumberHint(),
+            'phone_number.regex' => \App\Models\Setting::getPhoneNumberHint(),
         ]);
 
         $userData = [
@@ -355,8 +497,13 @@ class DriverController extends Controller
         $user->update($userData);
 
         $driver->update([
+            'date_of_birth' => $validated['date_of_birth'] ?? $driver->date_of_birth,
             'vehicle_type' => $validated['vehicle_type'],
             'fuel_type' => $validated['fuel_type'],
+            'years_of_experience' => $validated['years_of_experience'] ?? $driver->years_of_experience,
+            'public_age_range' => $validated['public_age_range'] ?? $driver->public_age_range,
+            'show_experience_to_public' => $request->has('show_experience_to_public'),
+            'show_age_range_to_public' => $request->has('show_age_range_to_public'),
         ]);
 
         return back()->with('success', 'Profile updated successfully!');

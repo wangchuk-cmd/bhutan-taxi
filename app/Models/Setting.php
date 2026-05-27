@@ -75,4 +75,46 @@ class Setting extends Model
     {
         return static::get('service_charge_percentage', 10);
     }
+
+    public static function getPhoneNumberRegex(): string
+    {
+        $prefixes = static::getPhoneNumberPrefixes();
+        $digits = static::getPhoneNumberDigits();
+        $remainingDigits = max(0, $digits - 2);
+        $prefixPattern = implode('|', array_map('preg_quote', $prefixes));
+
+        return '/^(' . $prefixPattern . ')\d{' . $remainingDigits . '}$/';
+    }
+
+    public static function getPhoneNumberDigits(): int
+    {
+        return (int) static::get('phone_number_digits', 8);
+    }
+
+    public static function getPhoneNumberPrefixes(): array
+    {
+        $value = (string) static::get('phone_number_prefixes', '16,17');
+
+        return array_values(array_filter(array_map('trim', explode(',', $value))));
+    }
+
+    public static function getPhoneNumberPattern(): string
+    {
+        $prefixes = static::getPhoneNumberPrefixes();
+        $prefixPattern = implode('|', array_map('preg_quote', $prefixes));
+
+        return '^(' . $prefixPattern . ')[0-9]{' . max(0, static::getPhoneNumberDigits() - 2) . '}$';
+    }
+
+    public static function getPhoneNumberHint(): string
+    {
+        $prefixes = implode(' or ', static::getPhoneNumberPrefixes());
+
+        return 'Phone number must be ' . static::getPhoneNumberDigits() . ' digits and start with ' . $prefixes . '.';
+    }
+
+    public static function getBankAccountDigits(string $bankKey, int $defaultDigits): int
+    {
+        return (int) static::get($bankKey . '_account_digits', $defaultDigits);
+    }
 }

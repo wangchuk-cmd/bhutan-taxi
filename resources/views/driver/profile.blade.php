@@ -196,10 +196,15 @@
                         <input type="text" name="name" class="form-input" value="{{ auth()->user()->name }}" required>
                     </div>
                     <div class="form-group">
+                <div class="form-group">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" name="date_of_birth" class="form-input" value="{{ old('date_of_birth', optional($driver->date_of_birth)->format('Y-m-d')) }}" required>
+                    <p class="form-helper">Used to calculate your age in admin reports.</p>
+                </div>
                         <label class="form-label">Phone Number</label>
                         <input type="tel" name="phone_number" class="form-input" 
                                value="{{ auth()->user()->phone_number }}" 
-                               pattern="[0-9]+" inputmode="numeric" required>
+                               pattern="{{ \App\Models\Setting::getPhoneNumberPattern() }}" maxlength="{{ \App\Models\Setting::getPhoneNumberDigits() }}" inputmode="numeric" title="{{ \App\Models\Setting::getPhoneNumberHint() }}" required>
                     </div>
                 </div>
 
@@ -227,6 +232,37 @@
                     </select>
                 </div>
 
+                <div class="form-group">
+                    <label class="form-label">Years of Experience</label>
+                    <input type="number" name="years_of_experience" class="form-input" min="0" max="70" step="1"
+                           value="{{ old('years_of_experience', $driver->years_of_experience) }}">
+                    <p class="form-helper">Optional. Customers will only see this if you choose to show it publicly.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Age Range (public)</label>
+                    <input type="text" name="public_age_range" class="form-input" maxlength="30"
+                           placeholder="e.g. 25-30"
+                           value="{{ old('public_age_range', $driver->public_age_range) }}">
+                    <p class="form-helper">Optional. Enter an age range you want customers to see.</p>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="1" id="showExperiencePublic" name="show_experience_to_public" {{ old('show_experience_to_public', $driver->show_experience_to_public) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="showExperiencePublic">
+                            Show years of experience to customers
+                        </label>
+                    </div>
+                    <div class="form-check" style="margin-top: 10px;">
+                        <input class="form-check-input" type="checkbox" value="1" id="showAgeRangePublic" name="show_age_range_to_public" {{ old('show_age_range_to_public', $driver->show_age_range_to_public) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="showAgeRangePublic">
+                            Show age range to customers
+                        </label>
+                    </div>
+                    <p class="form-helper">Use these settings to keep your driver profile details private or share them publicly.</p>
+                </div>
+
                 <button type="submit" class="submit-button">
                     <i class="bi bi-check-circle"></i>Update Profile
                 </button>
@@ -247,6 +283,26 @@
             <div class="info-card" style="margin-top: 16px;">
                 <div class="info-card-title">Plate Number</div>
                 <div class="info-card-value">{{ $driver->taxi_plate_number }}</div>
+            </div>
+
+            <div class="info-card" style="margin-top: 16px;">
+                <div class="info-card-title">Date of Birth</div>
+                <div class="info-card-value">{{ optional($driver->date_of_birth)->format('d M Y') ?? 'N/A' }}</div>
+            </div>
+
+            <div class="info-card" style="margin-top: 16px;">
+                <div class="info-card-title">Age</div>
+                <div class="info-card-value">{{ $driver->age ?? 'N/A' }} years</div>
+            </div>
+
+            <div class="info-card" style="margin-top: 16px;">
+                <div class="info-card-title">Age Range</div>
+                <div class="info-card-value">{{ $driver->age_range ?? 'N/A' }}</div>
+            </div>
+
+            <div class="info-card" style="margin-top: 16px;">
+                <div class="info-card-title">Experience</div>
+                <div class="info-card-value">{{ $driver->years_of_experience !== null ? $driver->years_of_experience . ' years' : 'N/A' }}</div>
             </div>
 
             <p class="info-card-helper" style="margin-top: 20px;">

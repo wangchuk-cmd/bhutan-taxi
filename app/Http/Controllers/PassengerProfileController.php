@@ -31,13 +31,14 @@ class PassengerProfileController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20|regex:/^[0-9]+$/|unique:users,phone_number,' . $user->id,
+            'phone_number' => ['required', 'string', 'size:' . \App\Models\Setting::getPhoneNumberDigits(), 'regex:' . \App\Models\Setting::getPhoneNumberRegex(), 'unique:users,phone_number,' . $user->id],
             'email' => 'required|email|unique:users,email,' . $user->id,
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'current_password' => 'nullable|string',
             'password' => ['nullable', 'string', 'confirmed', Password::min(8)],
         ], [
-            'phone_number.regex' => 'Phone number must contain only digits.',
+            'phone_number.size' => \App\Models\Setting::getPhoneNumberHint(),
+            'phone_number.regex' => \App\Models\Setting::getPhoneNumberHint(),
         ]);
 
         $userData = [

@@ -107,7 +107,7 @@
                                                 <label class="form-label">Phone Number <span class="text-danger">*</span></label>
                                                 <input type="tel" class="form-control" name="passengers[0][phone]" 
                                                        value="{{ old('passengers.0.phone', auth()->user()->phone_number) }}" 
-                                                       pattern="[0-9]+" inputmode="numeric" required>
+                                                          pattern="{{ \App\Models\Setting::getPhoneNumberPattern() }}" maxlength="{{ \App\Models\Setting::getPhoneNumberDigits() }}" inputmode="numeric" title="{{ \App\Models\Setting::getPhoneNumberHint() }}" required>
                                             </div>
                                         </div>
                                     </div>
@@ -163,9 +163,18 @@
                             <span class="text-muted"><i class="bi bi-clock me-2"></i>Time</span>
                             <span>{{ $trip->departure_datetime->format('h:i A') }}</span>
                         </div>
-                        <div class="d-flex justify-content-between mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="text-muted"><i class="bi bi-person me-2"></i>Driver</span>
-                            <span>{{ $trip->driver->user->name }}</span>
+                            <span class="d-inline-flex align-items-center gap-2 text-end">
+                                @if($trip->driver->user->profile_image)
+                                    <img src="{{ asset('storage/' . $trip->driver->user->profile_image) }}" alt="{{ $trip->driver->user->name }}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid #dbe4f0;">
+                                @else
+                                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width: 28px; height: 28px;">
+                                        <i class="bi bi-person-fill"></i>
+                                    </span>
+                                @endif
+                                <span>{{ $trip->driver->user->name }}</span>
+                            </span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted"><i class="bi bi-car-front me-2"></i>Vehicle</span>
@@ -338,7 +347,7 @@
                     <div class="col-md-6">
                         <label class="form-label">Phone Number <span class="text-danger">*</span></label>
                         <input type="tel" class="form-control" name="passengers[${i}][phone]" 
-                               pattern="[0-9]+" inputmode="numeric" required>
+                               pattern="{{ \App\Models\Setting::getPhoneNumberPattern() }}" maxlength="{{ \App\Models\Setting::getPhoneNumberDigits() }}" inputmode="numeric" title="{{ \App\Models\Setting::getPhoneNumberHint() }}" required>
                     </div>
                 </div>
             `;

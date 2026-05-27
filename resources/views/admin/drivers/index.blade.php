@@ -16,6 +16,7 @@
                             <th>Driver</th>
                             <th>Contact</th>
                             <th>Vehicle</th>
+                            <th>Age</th>
                             <th>License</th>
                             <th>Trips</th>
                             <th>Status</th>
@@ -28,6 +29,7 @@
                                 <td><strong>{{ $driver->user->name }}</strong></td>
                                 <td>{{ $driver->user->phone_number }}<br><small class="text-muted">{{ $driver->user->email }}</small></td>
                                 <td>{{ $driver->vehicle_type }}<br><small class="text-muted">{{ $driver->taxi_plate_number }}</small></td>
+                                <td>{{ $driver->age ? $driver->age . ' years' : 'N/A' }}</td>
                                 <td>{{ $driver->license_number }}</td>
                                 <td><span class="badge bg-primary">{{ $driver->trips_count }}</span></td>
                                 <td>

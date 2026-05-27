@@ -185,7 +185,6 @@
             <h4 style="margin-top: 0; color: #0d6efd;">📞 Driver Contact</h4>
             
             <div class="detail-row">
-                <span class="label">Driver Name:</span>
                 <span class="value">{{ $booking->trip->driver->user->name }}</span>
             </div>
             

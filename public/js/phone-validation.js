@@ -36,7 +36,10 @@ function initPhoneValidation() {
         // Remove any inline oninput handlers
         input.removeAttribute('oninput');
         input.setAttribute('inputmode', 'numeric');
-        input.setAttribute('pattern', '[0-9]+');
+
+        if (!input.getAttribute('pattern')) {
+            input.setAttribute('pattern', '[0-9]+');
+        }
         
         const tooltip = createTooltip(input, 'Numbers only');
         

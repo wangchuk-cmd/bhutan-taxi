@@ -8,14 +8,18 @@ use App\Models\Trip;
 use App\Models\Route;
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Models\RefundRequest;
 use App\Models\Payout;
 use App\Models\Complaint;
 use App\Models\Notification;
 use App\Models\Setting;
 use App\Services\DzongkhagRouteEstimator;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
@@ -34,6 +38,55 @@ class AdminController extends Controller
             'pendingPayouts' => Payout::pending()->sum('payout_amount'),
         ];
 
+        $liveUsers = $this->getLiveUsers();
+        $liveUsersCount = $liveUsers->count();
+
+        $routeUsage = DB::table('bookings')
+            ->join('trips', 'bookings.trip_id', '=', 'trips.id')
+            ->leftJoin('routes', 'trips.route_id', '=', 'routes.id')
+            ->selectRaw("COALESCE(CONCAT(routes.origin_dzongkhag, ' → ', routes.destination_dzongkhag), CONCAT(trips.origin_dzongkhag, ' → ', trips.destination_dzongkhag)) as route_name, COUNT(*) as booking_count")
+            ->groupByRaw("COALESCE(CONCAT(routes.origin_dzongkhag, ' → ', routes.destination_dzongkhag), CONCAT(trips.origin_dzongkhag, ' → ', trips.destination_dzongkhag))")
+            ->orderByDesc('booking_count')
+            ->limit(6)
+            ->get();
+
+        $routeUsageChart = [
+            'labels' => $routeUsage->pluck('route_name')->toArray(),
+            'values' => $routeUsage->pluck('booking_count')->map(fn ($count) => (int) $count)->toArray(),
+        ];
+
+        $routeUsageTop = $routeUsage->first();
+        $routeUsageSummary = $routeUsageTop ? [
+            'route_name' => $routeUsageTop->route_name,
+            'bookings' => (int) $routeUsageTop->booking_count,
+            'percentage' => $routeUsageChart['values'] ? round(($routeUsageChart['values'][0] / array_sum($routeUsageChart['values'])) * 100, 1) : 0,
+        ] : null;
+
+        $driverAgeRanges = collect([
+            'Under 25' => ['min' => 0, 'max' => 24],
+            '25 to 34' => ['min' => 25, 'max' => 34],
+            '35 to 44' => ['min' => 35, 'max' => 44],
+            '45 to 54' => ['min' => 45, 'max' => 54],
+            '55+' => ['min' => 55, 'max' => null],
+        ])->map(function ($bounds, $label) {
+            $query = Driver::whereNotNull('date_of_birth');
+            if (!is_null($bounds['min'])) {
+                $query->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) >= ?', [$bounds['min']]);
+            }
+            if (!is_null($bounds['max'])) {
+                $query->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) <= ?', [$bounds['max']]);
+            }
+            return [
+                'label' => $label,
+                'count' => $query->count(),
+            ];
+        })->values()->all();
+
+        $ageRangeChart = [
+            'labels' => collect($driverAgeRanges)->pluck('label')->toArray(),
+            'values' => collect($driverAgeRanges)->pluck('count')->toArray(),
+        ];
+
         $recentBookings = Booking::with(['passenger', 'trip.route'])
             ->orderBy('created_at', 'desc')
             ->take(10)
@@ -43,7 +96,17 @@ class AdminController extends Controller
             ->where('verified', false)
             ->get();
 
-        return view('admin.dashboard', compact('stats', 'recentBookings', 'pendingDrivers'));
+        return view('admin.dashboard', compact(
+            'stats',
+            'recentBookings',
+            'pendingDrivers',
+            'routeUsageChart',
+            'routeUsageSummary',
+            'driverAgeRanges',
+            'ageRangeChart',
+            'liveUsers',
+            'liveUsersCount'
+        ));
     }
 
     // Financial Details Report
@@ -333,7 +396,9 @@ class AdminController extends Controller
         Notification::send(
             $driver->user_id,
             'admin',
-            'Congratulations! Your driver account has been verified. You can now create trips.'
+            'Congratulations! Your driver account has been verified. You can now create trips.',
+            null,
+            ['url' => route('driver.dashboard')]
         );
 
         return back()->with('success', 'Driver verified successfully!');
@@ -390,7 +455,9 @@ class AdminController extends Controller
                 Notification::send(
                     $booking->passenger->id,
                     'alert',
-                    'Your trip from ' . $trip->origin_dzongkhag . ' to ' . $trip->destination_dzongkhag . ' has been cancelled by admin.'
+                    'Your trip from ' . $trip->origin_dzongkhag . ' to ' . $trip->destination_dzongkhag . ' has been cancelled by admin.',
+                    null,
+                    ['url' => route('bookings.show', $booking->id)]
                 );
             }
             $booking->update(['status' => 'cancelled']);
@@ -403,6 +470,7 @@ class AdminController extends Controller
     public function bookings()
     {
         $bookings = Booking::with(['passenger', 'trip.route', 'trip.driver.user', 'payment'])
+            ->where('payment_status', 'paid')
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
@@ -562,31 +630,42 @@ class AdminController extends Controller
                 'amount' => $amount,
                 'status' => 'completed',
                 'payment_method' => 'mock',
+                'transaction_id' => 'TXN-' . strtoupper(Str::random(12)),
                 'transaction_time' => now(),
             ]);
 
             $trip->decrement('available_seats', $booking->seats_booked);
 
             $serviceCharge = Payout::calculateServiceCharge($amount);
-            Payout::create([
+            $payoutData = [
                 'driver_id' => $trip->driver_id,
                 'trip_id' => $trip->id,
                 'total_amount' => $amount,
                 'service_charge' => $serviceCharge,
                 'payout_amount' => $amount - $serviceCharge,
                 'status' => 'pending',
-            ]);
+            ];
+
+            if (Schema::hasColumn('payouts', 'booking_id')) {
+                $payoutData['booking_id'] = $booking->id;
+            }
+
+            Payout::create($payoutData);
 
             Notification::send(
                 $booking->passenger_id,
                 'booking',
-                'Admin booked ' . $booking->seats_booked . ' seat(s) for you on ' . $trip->origin_dzongkhag . ' → ' . $trip->destination_dzongkhag
+                'Admin booked ' . $booking->seats_booked . ' seat(s) for you on ' . $trip->origin_dzongkhag . ' → ' . $trip->destination_dzongkhag,
+                null,
+                ['url' => route('bookings.show', $booking->id)]
             );
 
             Notification::send(
                 $trip->driver->user_id,
                 'booking',
-                'Admin booked ' . $booking->seats_booked . ' seat(s) on your trip.'
+                'Admin booked ' . $booking->seats_booked . ' seat(s) on your trip.',
+                null,
+                ['url' => route('driver.passengers', $trip->id)]
             );
         });
 
@@ -641,7 +720,7 @@ class AdminController extends Controller
     // Payout Management
     public function payouts()
     {
-        $payouts = Payout::with(['driver.user', 'trip.route'])
+        $payouts = Payout::with(['driver.user', 'trip.route', 'booking'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
@@ -654,15 +733,40 @@ class AdminController extends Controller
         return view('admin.payouts.index', compact('payouts', 'stats'));
     }
 
+    public function refunds(Request $request)
+    {
+        $refunds = RefundRequest::with(['booking.passenger', 'booking.trip', 'payment'])
+            ->whereIn('status', ['pending', 'under_review', 'refunded', 'rejected'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+
+        $stats = [
+            'open' => RefundRequest::open()->count(),
+            'refunded' => RefundRequest::where('status', 'refunded')->count(),
+            'rejected' => RefundRequest::where('status', 'rejected')->count(),
+        ];
+
+        return view('admin.refunds.index', compact('refunds', 'stats'));
+    }
+
     public function processPayout($id)
     {
-        $payout = Payout::with('driver.user')->findOrFail($id);
+        $payout = Payout::with(['driver.user', 'booking', 'trip.bookings'])->findOrFail($id);
+
+        if ($this->shouldSkipPayout($payout)) {
+            $this->markPayoutRefunded($payout);
+
+            return back()->with('error', 'This payout is linked to a refunded booking and cannot be processed.');
+        }
+
         $payout->update(['status' => 'completed', 'paid_at' => now()]);
 
         Notification::send(
             $payout->driver->user_id,
             'payment',
-            'Payout of Nu. ' . number_format($payout->payout_amount, 2) . ' has been processed.'
+            'Payout of Nu. ' . number_format($payout->payout_amount, 2) . ' has been processed.',
+            null,
+            ['url' => route('driver.payouts')]
         );
 
         return back()->with('success', 'Payout processed successfully!');
@@ -670,19 +774,50 @@ class AdminController extends Controller
 
     public function processAllPayouts()
     {
-        $pendingPayouts = Payout::with('driver.user')->pending()->get();
+        $pendingPayouts = Payout::with(['driver.user', 'booking', 'trip.bookings'])->pending()->get();
 
         foreach ($pendingPayouts as $payout) {
+            if ($this->shouldSkipPayout($payout)) {
+                $this->markPayoutRefunded($payout);
+                continue;
+            }
+
             $payout->update(['status' => 'completed', 'paid_at' => now()]);
 
             Notification::send(
                 $payout->driver->user_id,
                 'payment',
-                'Payout of Nu. ' . number_format($payout->payout_amount, 2) . ' has been processed.'
+                'Payout of Nu. ' . number_format($payout->payout_amount, 2) . ' has been processed.',
+                null,
+                ['url' => route('driver.payouts')]
             );
         }
 
         return back()->with('success', 'All pending payouts processed successfully!');
+    }
+
+    private function shouldSkipPayout(Payout $payout): bool
+    {
+        if ($payout->status === 'refunded') {
+            return true;
+        }
+
+        if ($payout->booking && $payout->booking->refund_status === 'refunded') {
+            return true;
+        }
+
+        if ($payout->booking_id) {
+            return false;
+        }
+
+        return $payout->trip && $payout->trip->bookings->contains(fn ($booking) => $booking->refund_status === 'refunded');
+    }
+
+    private function markPayoutRefunded(Payout $payout): void
+    {
+        if ($payout->status !== 'refunded') {
+            $payout->update(['status' => 'refunded']);
+        }
     }
 
     // Complaints Management
@@ -703,7 +838,9 @@ class AdminController extends Controller
         Notification::send(
             $complaint->user_id,
             'admin',
-            'Your ' . $complaint->type . ' regarding "' . $complaint->subject . '" has been resolved.'
+            'Your ' . $complaint->type . ' regarding "' . $complaint->subject . '" has been resolved.',
+            null,
+            ['url' => route('feedback')]
         );
 
         return back()->with('success', 'Complaint resolved!');
@@ -724,7 +861,9 @@ class AdminController extends Controller
         Notification::send(
             $complaint->user_id,
             'admin',
-            'Your ' . $complaint->type . ' regarding "' . $complaint->subject . '" has been resolved. Admin response: ' . $request->admin_response
+            'Your ' . $complaint->type . ' regarding "' . $complaint->subject . '" has been resolved. Admin response: ' . $request->admin_response,
+            null,
+            ['url' => route('feedback')]
         );
 
         return back()->with('success', 'Response sent and marked as resolved!');
@@ -733,12 +872,181 @@ class AdminController extends Controller
     // Users Management
     public function users()
     {
-        $users = User::where('role', 'passenger')
+        $users = User::with(['driver'])
             ->withCount('bookings')
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        return view('admin.users.index', compact('users'));
+        $liveUsers = $this->getLiveUsers();
+        $liveUserIds = $liveUsers->pluck('id')->all();
+        $liveUsersCount = $liveUsers->count();
+
+        return view('admin.users.index', compact('users', 'liveUserIds', 'liveUsers', 'liveUsersCount'));
+    }
+
+    public function editUser($id)
+    {
+        $user = User::with('driver')->findOrFail($id);
+
+        return view('admin.users.edit', compact('user'));
+    }
+
+    public function updateUser(Request $request, $id)
+    {
+        $user = User::with('driver')->findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone_number' => ['required', 'string', 'size:' . Setting::getPhoneNumberDigits(), 'regex:' . Setting::getPhoneNumberRegex(), 'unique:users,phone_number,' . $user->id],
+            'email' => 'nullable|email|unique:users,email,' . $user->id,
+            'role' => 'required|in:passenger,driver,admin',
+            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'date_of_birth' => 'nullable|date|before:today',
+            'license_number' => 'required_if:role,driver|nullable|string|max:50|unique:drivers,license_number,' . optional($user->driver)->id,
+            'taxi_plate_number' => 'required_if:role,driver|nullable|string|max:50|unique:drivers,taxi_plate_number,' . optional($user->driver)->id,
+            'vehicle_type' => 'required_if:role,driver|nullable|string|max:50',
+            'fuel_type' => 'required_if:role,driver|nullable|in:Fuel,Electric',
+        ], [
+            'phone_number.size' => Setting::getPhoneNumberHint(),
+            'phone_number.regex' => Setting::getPhoneNumberHint(),
+        ]);
+
+        $userData = [
+            'name' => $validated['name'],
+            'phone_number' => $validated['phone_number'],
+            'email' => $validated['email'],
+            'role' => $validated['role'],
+        ];
+
+        if ($request->hasFile('profile_image')) {
+            $userData['profile_image'] = $request->file('profile_image')->store('profiles', 'public');
+        }
+
+        $user->update($userData);
+
+        if ($validated['role'] === 'driver') {
+            $driverData = [
+                'license_number' => $validated['license_number'],
+                'taxi_plate_number' => $validated['taxi_plate_number'],
+                'date_of_birth' => $validated['date_of_birth'] ?? optional($user->driver)->date_of_birth,
+                'vehicle_type' => $validated['vehicle_type'],
+                'fuel_type' => $validated['fuel_type'],
+            ];
+
+            if ($user->driver) {
+                $user->driver->update($driverData);
+            } else {
+                $user->driver()->create($driverData + ['verified' => false, 'active' => true]);
+            }
+        }
+
+        if ($validated['role'] !== 'driver' && $user->driver) {
+            $user->driver->update([
+                'date_of_birth' => $validated['date_of_birth'] ?? $user->driver->date_of_birth,
+                'vehicle_type' => $validated['vehicle_type'] ?? $user->driver->vehicle_type,
+                'fuel_type' => $validated['fuel_type'] ?? $user->driver->fuel_type,
+            ]);
+        }
+
+        return redirect()->route('admin.users')->with('success', 'User details updated successfully!');
+    }
+
+    private function getLiveUsers(int $minutes = 5)
+    {
+        $cutoff = now()->subMinutes($minutes)->timestamp;
+
+        $recentSessions = DB::table('sessions')
+            ->select('user_id', DB::raw('MAX(last_activity) as last_activity'))
+            ->whereNotNull('user_id')
+            ->groupBy('user_id')
+            ->having('last_activity', '>=', $cutoff);
+
+        return User::query()
+            ->joinSub($recentSessions, 'recent_sessions', function ($join) {
+                $join->on('users.id', '=', 'recent_sessions.user_id');
+            })
+            ->select('users.id', 'users.name', 'users.email', 'users.phone_number', 'users.role', 'recent_sessions.last_activity')
+            ->orderByDesc('recent_sessions.last_activity')
+            ->get()
+            ->map(function ($user) {
+                $lastSeen = Carbon::createFromTimestamp((int) $user->last_activity);
+                $user->last_seen_human = $lastSeen->diffForHumans();
+                $user->last_seen_at = $lastSeen->format('M d, Y h:i A');
+
+                return $user;
+            });
+    }
+
+    public function createPassenger()
+    {
+        return view('admin.users.create-passenger');
+    }
+
+    public function storePassenger(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone_number' => ['required', 'string', 'size:' . Setting::getPhoneNumberDigits(), 'regex:' . Setting::getPhoneNumberRegex(), 'unique:users,phone_number'],
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ], [
+            'phone_number.size' => Setting::getPhoneNumberHint(),
+            'phone_number.regex' => Setting::getPhoneNumberHint(),
+        ]);
+
+        User::create([
+            'name' => $validated['name'],
+            'phone_number' => $validated['phone_number'],
+            'email' => $validated['email'],
+            'password' => bcrypt($validated['password']),
+            'role' => 'passenger',
+        ]);
+
+        return redirect()->route('admin.users')->with('success', 'Passenger registered successfully!');
+    }
+
+    public function createDriver()
+    {
+        return view('admin.users.create-driver');
+    }
+
+    public function storeDriver(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone_number' => ['required', 'string', 'size:' . Setting::getPhoneNumberDigits(), 'regex:' . Setting::getPhoneNumberRegex(), 'unique:users,phone_number'],
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'date_of_birth' => 'required|date|before:today',
+            'license_number' => 'required|string|max:50|unique:drivers,license_number',
+            'taxi_plate_number' => 'required|string|max:50|unique:drivers,taxi_plate_number',
+            'vehicle_type' => 'required|string|max:50',
+            'fuel_type' => 'required|in:Fuel,Electric',
+        ], [
+            'phone_number.size' => Setting::getPhoneNumberHint(),
+            'phone_number.regex' => Setting::getPhoneNumberHint(),
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'phone_number' => $validated['phone_number'],
+            'email' => $validated['email'],
+            'password' => bcrypt($validated['password']),
+            'role' => 'driver',
+        ]);
+
+        Driver::create([
+            'user_id' => $user->id,
+            'license_number' => $validated['license_number'],
+            'taxi_plate_number' => $validated['taxi_plate_number'],
+            'date_of_birth' => $validated['date_of_birth'],
+            'vehicle_type' => $validated['vehicle_type'],
+            'fuel_type' => $validated['fuel_type'],
+            'verified' => false,
+            'active' => true,
+        ]);
+
+        return redirect()->route('admin.users')->with('success', 'Driver registered successfully!');
     }
 
     public function updateUserRole($id, Request $request)
@@ -898,6 +1206,12 @@ class AdminController extends Controller
         if ($request->filled('vehicle_type')) {
             $query->where('vehicle_type', $request->vehicle_type);
         }
+        if ($request->filled('age_min')) {
+            $query->whereDate('date_of_birth', '<=', now()->subYears((int) $request->age_min)->toDateString());
+        }
+        if ($request->filled('age_max')) {
+            $query->whereDate('date_of_birth', '>=', now()->subYears((int) $request->age_max + 1)->addDay()->toDateString());
+        }
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -916,6 +1230,8 @@ class AdminController extends Controller
             'id' => $d->id,
             'name' => $d->user->name ?? 'Unknown',
             'phone' => $d->user->phone_number ?? '',
+            'dob' => $d->date_of_birth?->format('Y-m-d'),
+            'age' => $d->age,
             'license' => $d->license_number,
             'vehicle' => ucfirst($d->vehicle_type ?? 'N/A') . ' - ' . $d->taxi_plate_number,
             'verified' => $d->verified,
@@ -952,36 +1268,45 @@ class AdminController extends Controller
 
     public function searchRefunds(Request $request)
     {
-        $query = Booking::with(['passenger', 'trip'])
-            ->where('status', 'cancelled')
-            ->where('refund_status', '!=', 'none');
+        $query = RefundRequest::with(['booking.passenger', 'booking.trip', 'payment'])
+            ->when($request->filled('refund_status') && $request->refund_status !== 'open', function ($query) use ($request) {
+                $query->where('status', $request->refund_status);
+            })
+            ->when($request->filled('refund_status') && $request->refund_status === 'open', function ($query) {
+                $query->open();
+            });
 
-        $this->applyDateFilter($query, $request, 'cancellation_time');
-        
-        if ($request->filled('refund_status')) {
-            $query->where('refund_status', $request->refund_status);
-        }
+        $this->applyDateFilter($query, $request, 'created_at');
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('id', 'like', "%{$search}%")
-                  ->orWhereHas('passenger', fn($p) => 
+                  ->orWhereHas('booking.passenger', fn($p) => 
                       $p->where('name', 'like', "%{$search}%")
                         ->orWhere('phone_number', 'like', "%{$search}%")
+                  )
+                  ->orWhereHas('payment', fn($p) =>
+                      $p->where('transaction_id', 'like', "%{$search}%")
                   );
             });
         }
 
-        $refunds = $query->orderBy('cancellation_time', 'desc')->limit(500)->get();
+        $refunds = $query->orderBy('created_at', 'desc')->limit(500)->get();
 
-        return response()->json($refunds->map(fn($b) => [
-            'id' => $b->id,
-            'passenger_name' => $b->passenger->name ?? 'Unknown',
-            'passenger_phone' => $b->passenger->phone_number ?? '',
-            'route' => ($b->trip->origin_dzongkhag ?? '') . ' → ' . ($b->trip->destination_dzongkhag ?? ''),
-            'amount' => number_format($b->total_amount ?? 0),
-            'cancelled_at' => $b->cancellation_time?->format('Y-m-d H:i') ?? 'N/A',
-            'refund_status' => $b->refund_status,
+        return response()->json($refunds->map(fn($refund) => [
+            'id' => $refund->id,
+            'booking_id' => $refund->booking_id,
+            'passenger_name' => $refund->booking->passenger->name ?? 'Unknown',
+            'passenger_phone' => $refund->booking->passenger->phone_number ?? '',
+            'route' => ($refund->booking->trip->origin_dzongkhag ?? '') . ' → ' . ($refund->booking->trip->destination_dzongkhag ?? ''),
+            'amount' => number_format($refund->amount ?? 0),
+            'reason' => Str::limit($refund->reason ?? '', 80),
+            'transaction_id' => $refund->transaction_id ?? ($refund->payment->transaction_id ?? 'N/A'),
+            'requested_at' => $refund->created_at?->format('Y-m-d H:i') ?? 'N/A',
+            'reviewed_at' => $refund->reviewed_at?->format('Y-m-d H:i') ?? 'N/A',
+            'refund_status' => $refund->status,
+            'verified' => $refund->payment && $refund->transaction_id && $refund->payment->transaction_id === $refund->transaction_id,
         ]));
     }
 
@@ -1016,9 +1341,75 @@ class AdminController extends Controller
 
     public function updateRefundStatus(Request $request, $id)
     {
-        $booking = Booking::findOrFail($id);
-        $booking->refund_status = $request->refund_status;
-        $booking->save();
+        $validated = $request->validate([
+            'refund_status' => 'required|in:pending,under_review,rejected,refunded',
+            'admin_notes' => 'nullable|string|max:2000',
+        ]);
+
+        $refund = RefundRequest::with(['booking.payment', 'booking.trip', 'booking.passenger'])->findOrFail($id);
+
+        if ($validated['refund_status'] === 'refunded') {
+            $payment = $refund->booking->payment;
+
+            if (!$payment || $payment->status !== 'completed') {
+                return response()->json(['success' => false, 'message' => 'Completed payment not found for verification.'], 422);
+            }
+
+            if ($refund->transaction_id && $payment->transaction_id && $refund->transaction_id !== $payment->transaction_id) {
+                return response()->json(['success' => false, 'message' => 'Transaction ID does not match the payment record.'], 422);
+            }
+
+            DB::transaction(function () use ($refund, $validated, $payment) {
+                $refund->update([
+                    'status' => 'refunded',
+                    'admin_notes' => $validated['admin_notes'] ?? $refund->admin_notes,
+                    'reviewed_by' => auth()->id(),
+                    'reviewed_at' => now(),
+                    'processed_at' => now(),
+                ]);
+
+                $refund->booking->update([
+                    'refund_status' => 'refunded',
+                ]);
+
+                $payment->update([
+                    'status' => 'refunded',
+                ]);
+
+                if (Schema::hasColumn('payouts', 'booking_id')) {
+                    Payout::where('booking_id', $refund->booking_id)
+                        ->where('status', 'pending')
+                        ->update(['status' => 'refunded']);
+                }
+            });
+
+            Notification::send(
+                $refund->booking->passenger_id,
+                'refund_approved',
+                'Your refund request for booking #' . $refund->booking_id . ' has been approved and processed.'
+            );
+
+            return response()->json(['success' => true, 'message' => 'Refund verified and processed successfully']);
+        }
+
+        $refund->update([
+            'status' => $validated['refund_status'],
+            'admin_notes' => $validated['admin_notes'] ?? $refund->admin_notes,
+            'reviewed_by' => auth()->id(),
+            'reviewed_at' => now(),
+        ]);
+
+        $refund->booking->update([
+            'refund_status' => $validated['refund_status'] === 'rejected' ? 'none' : 'pending',
+        ]);
+
+        Notification::send(
+            $refund->booking->passenger_id,
+            $validated['refund_status'] === 'rejected' ? 'refund_rejected' : 'refund_review',
+            $validated['refund_status'] === 'rejected'
+                ? 'Your refund request for booking #' . $refund->booking_id . ' was rejected by admin.'
+                : 'Your refund request for booking #' . $refund->booking_id . ' is under review.'
+        );
 
         return response()->json(['success' => true, 'message' => 'Refund status updated successfully']);
     }
@@ -1193,27 +1584,31 @@ class AdminController extends Controller
 
     public function exportRefunds(Request $request)
     {
-        $query = Booking::with(['passenger', 'trip'])
-            ->where('status', 'cancelled')
-            ->where('refund_status', '!=', 'none');
+        $query = RefundRequest::with(['booking.passenger', 'booking.trip', 'payment'])
+            ->when($request->filled('refund_status') && $request->refund_status !== 'open', function ($query) use ($request) {
+                $query->where('status', $request->refund_status);
+            })
+            ->when($request->filled('refund_status') && $request->refund_status === 'open', function ($query) {
+                $query->open();
+            });
 
-        $this->applyDateFilter($query, $request, 'cancellation_time');
+        $this->applyDateFilter($query, $request, 'created_at');
 
-        if ($request->filled('refund_status')) {
-            $query->where('refund_status', $request->refund_status);
-        }
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('id', 'like', "%{$search}%")
-                  ->orWhereHas('passenger', fn($p) =>
+                  ->orWhereHas('booking.passenger', fn($p) =>
                       $p->where('name', 'like', "%{$search}%")
                         ->orWhere('phone_number', 'like', "%{$search}%")
+                  )
+                  ->orWhereHas('payment', fn($p) =>
+                      $p->where('transaction_id', 'like', "%{$search}%")
                   );
             });
         }
 
-        $refunds = $query->orderBy('cancellation_time', 'desc')->get();
+        $refunds = $query->orderBy('created_at', 'desc')->get();
 
         $filename = 'refunds_report_' . now()->format('Y-m-d_His') . '.csv';
         $headers = [
@@ -1223,17 +1618,21 @@ class AdminController extends Controller
 
         $callback = function () use ($refunds) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['Booking ID', 'Passenger', 'Phone', 'Route', 'Amount', 'Cancelled At', 'Refund Status']);
+            fputcsv($file, ['Refund ID', 'Booking ID', 'Passenger', 'Phone', 'Route', 'Amount', 'Reason', 'Transaction ID', 'Status', 'Requested At', 'Reviewed At']);
 
-            foreach ($refunds as $booking) {
+            foreach ($refunds as $refund) {
                 fputcsv($file, [
-                    $booking->id,
-                    $booking->getPrimaryPassengerName(),
-                    $booking->getPrimaryPassengerPhone(),
-                    ($booking->trip->origin_dzongkhag ?? 'N/A') . ' → ' . ($booking->trip->destination_dzongkhag ?? 'N/A'),
-                    $booking->total_amount ?? 0,
-                    $booking->cancellation_time?->format('Y-m-d H:i') ?? 'N/A',
-                    ucfirst($booking->refund_status),
+                    $refund->id,
+                    $refund->booking_id,
+                    $refund->booking->passenger->name ?? 'Unknown',
+                    $refund->booking->passenger->phone_number ?? '',
+                    ($refund->booking->trip->origin_dzongkhag ?? 'N/A') . ' → ' . ($refund->booking->trip->destination_dzongkhag ?? 'N/A'),
+                    $refund->amount ?? 0,
+                    $refund->reason,
+                    $refund->transaction_id ?? ($refund->payment->transaction_id ?? 'N/A'),
+                    ucfirst($refund->status),
+                    $refund->created_at?->format('Y-m-d H:i') ?? 'N/A',
+                    $refund->reviewed_at?->format('Y-m-d H:i') ?? 'N/A',
                 ]);
             }
             fclose($file);
@@ -1255,6 +1654,12 @@ class AdminController extends Controller
         }
         if ($request->filled('vehicle_type')) {
             $query->where('vehicle_type', $request->vehicle_type);
+        }
+        if ($request->filled('age_min')) {
+            $query->whereDate('date_of_birth', '<=', now()->subYears((int) $request->age_min)->toDateString());
+        }
+        if ($request->filled('age_max')) {
+            $query->whereDate('date_of_birth', '>=', now()->subYears((int) $request->age_max + 1)->addDay()->toDateString());
         }
         if ($request->filled('search')) {
             $search = $request->search;
@@ -1278,7 +1683,7 @@ class AdminController extends Controller
 
         $callback = function() use ($drivers) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['ID', 'Name', 'Phone', 'Email', 'License No', 'Vehicle No', 'Vehicle Type', 'Verified', 'Active', 'Total Earnings', 'Total Trips', 'Joined At']);
+            fputcsv($file, ['ID', 'Name', 'Phone', 'Email', 'Date of Birth', 'Age', 'License No', 'Vehicle No', 'Vehicle Type', 'Verified', 'Active', 'Total Earnings', 'Total Trips', 'Joined At']);
 
             foreach ($drivers as $driver) {
                 $totalEarnings = $driver->payouts->where('status', 'completed')->sum('payout_amount');
@@ -1288,6 +1693,8 @@ class AdminController extends Controller
                     $driver->user->name ?? 'N/A',
                     $driver->user->phone_number ?? 'N/A',
                     $driver->user->email ?? 'N/A',
+                    $driver->date_of_birth?->format('Y-m-d') ?? 'N/A',
+                    $driver->age ?? 'N/A',
                     $driver->license_number ?? 'N/A',
                     $driver->taxi_plate_number ?? $driver->vehicle_number ?? 'N/A',
                     $driver->vehicle_type ?? 'N/A',
@@ -1482,10 +1889,18 @@ class AdminController extends Controller
             'min_booking_hours'         => Setting::get('min_booking_hours', 2),
             'max_seats_per_booking'     => Setting::get('max_seats_per_booking', 4),
             'payment_timeout_seconds'   => Setting::get('payment_timeout_seconds', 15),
+            'refund_request_deadline_hours' => Setting::get('refund_request_deadline_hours', 24),
+            'refund_requires_transaction_id' => Setting::get('refund_requires_transaction_id', true),
             'site_name'                 => Setting::get('site_name', 'Bhutan Taxi'),
             'contact_email'             => Setting::get('contact_email', ''),
             'contact_phone'             => Setting::get('contact_phone', ''),
             'driver_payout_time'        => Setting::get('driver_payout_time', '24'),
+            'phone_number_digits'       => Setting::get('phone_number_digits', 8),
+            'phone_number_prefixes'     => Setting::get('phone_number_prefixes', '16,17'),
+            'bob_account_digits'        => Setting::get('bob_account_digits', 9),
+            'bnb_account_digits'        => Setting::get('bnb_account_digits', 9),
+            'dk_account_digits'         => Setting::get('dk_account_digits', 12),
+            't_bank_account_digits'     => Setting::get('t_bank_account_digits', 12),
         ];
 
         return view('admin.settings.index', compact('settings'));
@@ -1498,20 +1913,36 @@ class AdminController extends Controller
             'min_booking_hours'         => 'required|integer|min:0|max:48',
             'max_seats_per_booking'     => 'required|integer|min:1|max:12',
             'payment_timeout_minutes'   => 'required|integer|min:1|max:15',
+            'refund_request_deadline_hours' => 'required|integer|min:1|max:168',
+            'refund_requires_transaction_id' => 'sometimes|boolean',
             'site_name'                 => 'required|string|max:100',
             'contact_email'             => 'nullable|email|max:255',
             'contact_phone'             => 'nullable|string|max:20',
             'driver_payout_time'        => 'required|in:immediate,24,48,72',
+            'phone_number_digits'       => 'required|integer|min:1|max:20',
+            'phone_number_prefixes'     => 'required|string|max:100',
+            'bob_account_digits'        => 'required|integer|min:1|max:20',
+            'bnb_account_digits'        => 'required|integer|min:1|max:20',
+            'dk_account_digits'         => 'required|integer|min:1|max:20',
+            't_bank_account_digits'     => 'required|integer|min:1|max:20',
         ]);
 
         Setting::set('service_charge_percentage', $validated['service_charge_percentage'], 'decimal',  'Service charge percentage for driver payouts');
         Setting::set('min_booking_hours',         $validated['min_booking_hours'],         'integer',  'Minimum hours before departure for booking');
         Setting::set('max_seats_per_booking',     $validated['max_seats_per_booking'],     'integer',  'Maximum seats per booking');
         Setting::set('payment_timeout_seconds', $validated['payment_timeout_minutes'] * 60, 'integer', 'Seconds for payment confirmation countdown');
+        Setting::set('refund_request_deadline_hours', $validated['refund_request_deadline_hours'], 'integer', 'Hours before departure that refund requests become urgent');
+        Setting::set('refund_requires_transaction_id', $request->boolean('refund_requires_transaction_id'), 'boolean', 'Require transaction ID for refund requests');
         Setting::set('site_name',                 $validated['site_name'],                 'string',   'Site name');
         Setting::set('contact_email',             $validated['contact_email'] ?? '',       'string',   'Contact email');
         Setting::set('contact_phone',             $validated['contact_phone'] ?? '',       'string',   'Contact phone');
         Setting::set('driver_payout_time',        $validated['driver_payout_time'],        'string',   'Driver payout time (immediate or hours)');
+        Setting::set('phone_number_digits',       $validated['phone_number_digits'],       'integer',  'Passenger/driver phone number total digits');
+        Setting::set('phone_number_prefixes',     $validated['phone_number_prefixes'],     'string',   'Allowed phone number prefixes separated by commas');
+        Setting::set('bob_account_digits',        $validated['bob_account_digits'],        'integer',  'BoB account number digits');
+        Setting::set('bnb_account_digits',        $validated['bnb_account_digits'],        'integer',  'BNB account number digits');
+        Setting::set('dk_account_digits',         $validated['dk_account_digits'],         'integer',  'DK account number digits');
+        Setting::set('t_bank_account_digits',     $validated['t_bank_account_digits'],     'integer',  'T Bank account number digits');
 
         return redirect()->route('admin.settings')->with('success', 'Settings updated successfully!');
     }

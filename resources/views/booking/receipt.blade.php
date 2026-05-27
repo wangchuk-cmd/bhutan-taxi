@@ -68,7 +68,18 @@
                                         </tr>
                                         <tr>
                                             <td class="text-muted py-0">Driver:</td>
-                                            <td class="fw-bold py-0">{{ $booking->trip->driver->user->name }}</td>
+                                            <td class="fw-bold py-0">
+                                                <span class="d-inline-flex align-items-center gap-2">
+                                                    @if($booking->trip->driver->user->profile_image)
+                                                        <img src="{{ asset('storage/' . $booking->trip->driver->user->profile_image) }}" alt="{{ $booking->trip->driver->user->name }}" style="width: 22px; height: 22px; border-radius: 50%; object-fit: cover; border: 1px solid #dbe4f0;">
+                                                    @else
+                                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width: 22px; height: 22px;">
+                                                            <i class="bi bi-person-fill" style="font-size: 11px;"></i>
+                                                        </span>
+                                                    @endif
+                                                    <span>{{ $booking->trip->driver->user->name }}</span>
+                                                </span>
+                                            </td>
                                         </tr>
                                         <tr>
                                             <td class="text-muted py-0">Vehicle Type:</td>

@@ -125,7 +125,98 @@
 }
 
 .dashboard-card .card-body {
-    padding: 20px;
+    padding: 16px;
+}
+
+.dashboard-card .summary-panel {
+    background: #f8fafc;
+    border: 1px solid rgba(226,232,240,0.9);
+    border-radius: 12px;
+    padding: 12px;
+    min-height: 100%;
+}
+
+.dashboard-card .summary-panel h6 {
+    font-size: 14px;
+    margin-bottom: 2px;
+    font-weight: 700;
+    color: var(--dark-color);
+}
+
+.dashboard-card .summary-panel p {
+    margin-bottom: 0;
+}
+
+.dashboard-card .summary-panel .summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid rgba(148,163,184,0.15);
+}
+
+.dashboard-card .summary-panel .summary-item:last-child {
+    border-bottom: none;
+}
+
+.dashboard-card .summary-panel .summary-item span {
+    color: #6b7280;
+}
+
+.dashboard-card .summary-panel .summary-item strong {
+    color: #111827;
+}
+
+.dashboard-card .summary-panel .summary-item small {
+    font-size: 10px;
+}
+
+.dashboard-card .range-list {
+    display: grid;
+    gap: 6px;
+}
+
+.dashboard-card .range-item {
+    background: #ffffff;
+    border: 1px solid rgba(226,232,240,0.9);
+    border-radius: 12px;
+    padding: 10px;
+}
+
+.dashboard-card .range-item .d-flex.mb-2 {
+    margin-bottom: 6px;
+}
+
+.dashboard-card .range-label {
+    color: #374151;
+    font-weight: 600;
+}
+
+.dashboard-card .range-count {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    border-radius: 999px;
+}
+
+.dashboard-card .range-meter {
+    height: 6px;
+    border-radius: 999px;
+    background: #eef2ff;
+    overflow: hidden;
+}
+
+.dashboard-card .range-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #6366f1, #818cf8);
+}
+
+.dashboard-card .range-item small {
+    font-size: 10px;
+}
+
+.dashboard-card .card-header {
+    padding: 16px;
 }
 
 /* ==================== TABLE STYLES ==================== */

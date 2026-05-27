@@ -13,30 +13,57 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class PaymentController extends Controller
 {
     public function process($bookingId)
     {
-        $booking = Booking::with(['trip.route', 'trip.driver:id,user_id,vehicle_type,fuel_type', 'trip.driver.user:id,name'])
+        $booking = Booking::with(['trip.route', 'trip.driver:id,user_id,vehicle_type,fuel_type,taxi_plate_number', 'trip.driver.user:id,name,profile_image'])
             ->where('passenger_id', Auth::id())
             ->where('payment_status', 'pending')
             ->findOrFail($bookingId);
 
         $amount = $booking->total_amount;
         $timeRemaining = Setting::get('payment_timeout_seconds', 300); // 5 minutes for OTP timeout
+        $bankAccountDigits = [
+            'bob' => Setting::getBankAccountDigits('bob', 9),
+            'bnb' => Setting::getBankAccountDigits('bnb', 9),
+            't_bank' => Setting::getBankAccountDigits('t_bank', 12),
+            'dk' => Setting::getBankAccountDigits('dk', 12),
+        ];
 
-        return view('payment.process', compact('booking', 'amount', 'timeRemaining'));
+        return view('payment.process', compact('booking', 'amount', 'timeRemaining', 'bankAccountDigits'));
     }
 
     public function complete(Request $request, $bookingId)
     {
-        $booking = Booking::with(['trip.driver:id,user_id,vehicle_type,fuel_type', 'trip.driver.user:id,name', 'trip.route', 'passenger'])
+        $booking = Booking::with(['trip.driver:id,user_id,vehicle_type,fuel_type,taxi_plate_number', 'trip.driver.user:id,name,profile_image', 'trip.route', 'passenger'])
             ->where('passenger_id', Auth::id())
             ->where('payment_status', 'pending')
             ->findOrFail($bookingId);
 
         $trip = $booking->trip;
+
+        $validated = $request->validate([
+            'payment_method' => 'required|string|max:100',
+            'bank_type' => 'required|string|max:100',
+            'account_number' => 'required|string|max:20',
+            'account_last4' => 'required|string|size:4|regex:/^[0-9]{4}$/',
+        ]);
+
+        $expectedDigits = match ($validated['bank_type']) {
+            'Bank of Bhutan (mBoB)' => Setting::getBankAccountDigits('bob', 9),
+            'Bhutan National Bank (mPAY)' => Setting::getBankAccountDigits('bnb', 9),
+            'T-Bank (T-Pay)' => Setting::getBankAccountDigits('t_bank', 12),
+            'RMA (DK / Wallet)' => Setting::getBankAccountDigits('dk', 12),
+            default => null,
+        };
+
+        if (!$expectedDigits || !preg_match('/^\d{' . $expectedDigits . '}$/', $validated['account_number'])) {
+            return back()->withInput()->with('error', 'Account number must be exactly ' . ($expectedDigits ?? 'the required') . ' digits for the selected bank.');
+        }
 
         // Check if seats are still available (first-pay-first-get)
         if (!$trip->hasAvailableSeats($booking->seats_booked)) {
@@ -66,6 +93,7 @@ class PaymentController extends Controller
                 'amount' => $amount,
                 'status' => 'completed',
                 'payment_method' => $methodString,
+                'transaction_id' => 'TXN-' . strtoupper(Str::random(12)),
                 'transaction_time' => now(),
             ]);
 
@@ -82,7 +110,7 @@ class PaymentController extends Controller
             $serviceCharge = Payout::calculateServiceCharge($amount);
             $payoutStatus = Setting::get('driver_payout_time', '24') === 'immediate' ? 'completed' : 'pending';
             $paidAt = $payoutStatus === 'completed' ? now() : null;
-            Payout::create([
+            $payoutData = [
                 'driver_id' => $trip->driver_id,
                 'trip_id' => $trip->id,
                 'total_amount' => $amount,
@@ -90,20 +118,30 @@ class PaymentController extends Controller
                 'payout_amount' => $amount - $serviceCharge,
                 'status' => $payoutStatus,
                 'paid_at' => $paidAt,
-            ]);
+            ];
+
+            if (Schema::hasColumn('payouts', 'booking_id')) {
+                $payoutData['booking_id'] = $booking->id;
+            }
+
+            Payout::create($payoutData);
 
             // Notify passenger
             Notification::send(
                 $booking->passenger_id,
                 'payment',
-                'Payment successful! Your booking for ' . $trip->origin_dzongkhag . ' → ' . $trip->destination_dzongkhag . ' is confirmed.'
+                'Payment successful! Your booking for ' . $trip->origin_dzongkhag . ' → ' . $trip->destination_dzongkhag . ' is confirmed.',
+                null,
+                ['url' => route('bookings.show', $booking->id)]
             );
 
             // Notify driver
             Notification::send(
                 $trip->driver->user_id,
                 'booking',
-                'New booking received! ' . $booking->seats_booked . ' seat(s) booked for your trip on ' . $trip->departure_datetime->format('M d, Y H:i')
+                'New booking received! ' . $booking->seats_booked . ' seat(s) booked for your trip on ' . $trip->departure_datetime->format('M d, Y H:i'),
+                null,
+                ['url' => route('driver.passengers', $trip->id)]
             );
 
             // Send email confirmation to passenger

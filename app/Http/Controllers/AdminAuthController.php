@@ -41,8 +41,11 @@ class AdminAuthController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'phone_number' => 'required|string|unique:users,phone_number',
+            'phone_number' => ['required', 'string', 'size:' . \App\Models\Setting::getPhoneNumberDigits(), 'regex:' . \App\Models\Setting::getPhoneNumberRegex(), 'unique:users,phone_number'],
             'password' => 'required|string|min:8',
+        ], [
+            'phone_number.size' => \App\Models\Setting::getPhoneNumberHint(),
+            'phone_number.regex' => \App\Models\Setting::getPhoneNumberHint(),
         ]);
 
         $user = User::create([

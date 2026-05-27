@@ -32,6 +32,20 @@
                         </div>
 
                         <div class="booking-card-body">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                @if($booking->trip->driver->user->profile_image)
+                                    <img src="{{ asset('storage/' . $booking->trip->driver->user->profile_image) }}" alt="{{ $booking->trip->driver->user->name }}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #dbe4f0;">
+                                @else
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width: 36px; height: 36px; flex: 0 0 auto;">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                @endif
+                                <div>
+                                    <div class="booking-location" style="font-size: 0.95rem; line-height: 1.1;">{{ $booking->trip->driver->user->name }}</div>
+                                    <small class="text-muted">Driver</small>
+                                </div>
+                            </div>
+
                             <div class="booking-meta-row">
                                 <div class="booking-meta">
                                     <small>Date</small>
@@ -62,14 +76,19 @@
                             <div class="booking-footer">
                                 <div class="booking-price">
                                     <span class="fw-bold text-success">Nu. {{ number_format($booking->total_amount, 2) }}</span>
-                                    @if($booking->refund_status === 'refunded')
-                                        <span class="badge bg-info ms-2">Refunded</span>
+                                    @if($booking->latestRefundRequest)
+                                        <span class="badge bg-info ms-2 text-capitalize">{{ $booking->latestRefundRequest->status }}</span>
                                     @endif
                                 </div>
                                 <div class="booking-actions">
                                     <a href="{{ route('bookings.show', $booking->id) }}" class="btn-action btn-view" title="View Details">
                                         <i class="bi bi-eye"></i>
                                     </a>
+                                    @if($booking->payment_status === 'paid' && !$booking->latestRefundRequest)
+                                        <a href="{{ route('bookings.show', $booking->id) }}" class="btn btn-sm btn-outline-warning" title="Request Refund">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i> Refund
+                                        </a>
+                                    @endif
                                     @if($booking->payment_status === 'paid' && !$booking->rating)
                                         <a href="{{ route('rating.show', $booking->id) }}" class="btn btn-sm btn-warning" title="Rate Driver">
                                             <i class="bi bi-star me-1"></i> Rate Driver

@@ -14,8 +14,13 @@
                 <div class="card">
                     <div class="list-group list-group-flush">
                         @foreach($notifications as $notification)
-                            <div class="list-group-item">
-                                <div class="d-flex align-items-start">
+                            @php($targetUrl = $notification->targetUrl(auth()->user()))
+                            <div class="list-group-item p-0">
+                                @if($targetUrl)
+                                    <a href="{{ $targetUrl }}" class="d-flex align-items-start text-decoration-none text-reset p-3">
+                                @else
+                                    <div class="d-flex align-items-start p-3">
+                                @endif
                                     <div class="me-3">
                                         @switch($notification->type)
                                             @case('booking')
@@ -33,6 +38,14 @@
                                             @case('admin')
                                                 <i class="bi bi-shield-check text-warning fs-5"></i>
                                                 @break
+                                            @case('refund_request')
+                                                <i class="bi bi-arrow-counterclockwise text-danger fs-5"></i>
+                                                @break
+                                            @case('refund_review')
+                                            @case('refund_approved')
+                                            @case('refund_rejected')
+                                                <i class="bi bi-arrow-counterclockwise text-info fs-5"></i>
+                                                @break
                                             @default
                                                 <i class="bi bi-bell text-secondary fs-5"></i>
                                         @endswitch
@@ -41,7 +54,11 @@
                                         <p class="mb-1">{{ $notification->message }}</p>
                                         <small class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
                                     </div>
-                                </div>
+                                @if($targetUrl)
+                                    </a>
+                                @else
+                                    </div>
+                                @endif
                             </div>
                         @endforeach
                     </div>

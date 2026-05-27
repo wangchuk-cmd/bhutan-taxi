@@ -242,9 +242,11 @@
                             <div class="col-md-2">
                                 <label class="form-label small">Refund Status</label>
                                 <select name="refund_status" class="form-select form-select-sm">
-                                    <option value="">All Refund Requests</option>
-                                    <option value="pending" selected>Pending</option>
+                                    <option value="open" selected>Open Queue</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="under_review">Under Review</option>
                                     <option value="refunded">Refunded</option>
+                                    <option value="rejected">Rejected</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -267,13 +269,15 @@
                                     <th>Phone</th>
                                     <th>Route</th>
                                     <th>Amount</th>
-                                    <th>Cancelled</th>
+                                    <th>Reason</th>
+                                    <th>Transaction</th>
                                     <th>Refund Status</th>
+                                    <th>Verified</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="refundsTableBody">
-                                <tr><td colspan="8" class="text-center text-muted">Click Search to load refund requests</td></tr>
+                                        <tr><td colspan="10" class="text-center text-muted">Click Search to load refund requests</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -387,6 +391,14 @@
                                     <option value="hiace">Hiace</option>
                                 </select>
                             </div>
+                            <div class="col-md-2">
+                                <label class="form-label small">Age Min</label>
+                                <input type="number" name="age_min" class="form-control form-control-sm" min="0" placeholder="18">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small">Age Max</label>
+                                <input type="number" name="age_max" class="form-control form-control-sm" min="0" placeholder="60">
+                            </div>
                             <div class="col-md-3">
                                 <label class="form-label small">Search</label>
                                 <input type="text" name="search" class="form-control form-control-sm" placeholder="Name/Phone/License">
@@ -405,6 +417,8 @@
                                     <th>ID</th>
                                     <th>Name</th>
                                     <th>Phone</th>
+                                    <th>Date of Birth</th>
+                                    <th>Age</th>
                                     <th>License</th>
                                     <th>Vehicle</th>
                                     <th>Verified</th>
@@ -413,7 +427,7 @@
                                 </tr>
                             </thead>
                             <tbody id="driversTableBody">
-                                <tr><td colspan="8" class="text-center text-muted">Click Search to load data</td></tr>
+                                <tr><td colspan="10" class="text-center text-muted">Click Search to load data</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -521,10 +535,18 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         loadPendingRefundsCount();
+        searchRefunds();
+
+        if (new URLSearchParams(window.location.search).get('tab') === 'refunds') {
+            const refundsTabButton = document.querySelector('[data-bs-target="#refundsTab"]');
+            if (refundsTabButton) {
+                bootstrap.Tab.getOrCreateInstance(refundsTabButton).show();
+            }
+        }
     });
 
     function loadPendingRefundsCount() {
-        fetch(`{{ route('admin.reports.search.refunds') }}?refund_status=pending`)
+        fetch(`{{ route('admin.reports.search.refunds') }}?refund_status=open`)
             .then(res => res.json())
             .then(data => {
                 document.getElementById('refundsBadge').textContent = data.length;
@@ -607,20 +629,22 @@
             .then(data => {
                 const tbody = document.getElementById('refundsTableBody');
                 if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No refund requests found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted">No refund requests found</td></tr>';
                 } else {
                     tbody.innerHTML = data.map(r => `
                         <tr>
-                            <td>#${r.id}</td>
+                            <td>#${r.booking_id}</td>
                             <td>${r.passenger_name}</td>
                             <td>${r.passenger_phone}</td>
                             <td>${r.route}</td>
                             <td>Nu. ${r.amount}</td>
-                            <td>${r.cancelled_at}</td>
-                            <td><span class="badge bg-${r.refund_status === 'pending' ? 'warning' : 'success'}">${r.refund_status}</span></td>
+                            <td>${r.reason || '-'}</td>
+                            <td class="text-break">${r.transaction_id || '-'}</td>
+                            <td><span class="badge bg-${r.refund_status === 'pending' || r.refund_status === 'under_review' ? 'warning' : r.refund_status === 'rejected' ? 'danger' : 'success'}">${r.refund_status}</span></td>
+                            <td>${r.verified ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-secondary">Pending</span>'}</td>
                             <td>
-                                ${r.refund_status === 'pending' ? `<button class="btn btn-sm btn-success" onclick="processRefund(${r.id}, 'refunded')"><i class="bi bi-check-circle"></i> Refund</button>` : `<span class="text-success"><i class="bi bi-check-circle"></i> Done</span>`}
-                                <a href="/admin/bookings/${r.id}" class="btn btn-sm btn-outline-info" title="View"><i class="bi bi-eye"></i></a>
+                                ${(r.refund_status === 'pending' || r.refund_status === 'under_review') ? `<button class="btn btn-sm btn-success" onclick="processRefund(${r.id}, 'refunded')"><i class="bi bi-check-circle"></i> Verify & Refund</button> <button class="btn btn-sm btn-outline-danger" onclick="processRefund(${r.id}, 'rejected')"><i class="bi bi-x-circle"></i> Reject</button>` : `<span class="text-success"><i class="bi bi-check-circle"></i> Done</span>`}
+                                <a href="/admin/bookings/${r.booking_id}" class="btn btn-sm btn-outline-info" title="View"><i class="bi bi-eye"></i></a>
                             </td>
                         </tr>
                     `).join('');
@@ -662,13 +686,15 @@
             .then(data => {
                 const tbody = document.getElementById('driversTableBody');
                 if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No drivers found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted">No drivers found</td></tr>';
                 } else {
                     tbody.innerHTML = data.map(d => `
                         <tr>
                             <td>${d.id}</td>
                             <td>${d.name}</td>
                             <td>${d.phone}</td>
+                            <td>${d.dob || '-'}</td>
+                            <td>${d.age ? `${d.age} years` : '-'}</td>
                             <td>${d.license}</td>
                             <td>${d.vehicle}</td>
                             <td><span class="badge bg-${d.verified ? 'success' : 'warning'}">${d.verified ? 'Yes' : 'No'}</span></td>
@@ -698,7 +724,7 @@
                             <td>Nu. ${p.total}</td>
                             <td>Nu. ${p.charge}</td>
                             <td>Nu. ${p.payout}</td>
-                            <td><span class="badge bg-${p.status === 'completed' ? 'success' : 'warning'}">${p.status}</span></td>
+                            <td><span class="badge bg-${p.status === 'completed' ? 'success' : p.status === 'refunded' ? 'danger' : 'warning'}">${p.status}</span></td>
                             <td>${p.status === 'pending' ? `<button class="btn btn-sm btn-success" onclick="markPayoutComplete(${p.id})"><i class="bi bi-check-circle"></i></button>` : '-'}</td>
                         </tr>
                     `).join('');
@@ -776,14 +802,17 @@
     }
 
     function processRefund(bookingId, status) {
-        showConfirmModal('Mark this booking as refunded?', 'Process Refund', function() {
-            fetch(`/admin/reports/update/refund/${bookingId}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: JSON.stringify({ refund_status: status }) })
+        const message = status === 'refunded' ? 'Verify the transaction and process this refund?' : 'Reject this refund request?';
+        const title = status === 'refunded' ? 'Verify & Refund' : 'Reject Refund';
+
+        showConfirmModal(message, title, function(adminNotes) {
+            fetch(`/admin/reports/update/refund/${bookingId}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: JSON.stringify({ refund_status: status, admin_notes: adminNotes || '' }) })
             .then(res => res.json())
             .then(result => {
-                if (result.success) { alert('Refund processed!'); searchRefunds(); loadPendingRefundsCount(); }
+                if (result.success) { alert(result.message || 'Updated successfully!'); searchRefunds(); loadPendingRefundsCount(); }
                 else { alert('Error: ' + (result.message || 'Failed')); }
             });
-        });
+        }, { showInput: true, inputPlaceholder: status === 'refunded' ? 'Admin notes for approval (optional)' : 'Admin notes for rejection (optional)' });
     }
 
     function markPayoutComplete(payoutId) {

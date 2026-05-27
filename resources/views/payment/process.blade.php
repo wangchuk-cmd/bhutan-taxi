@@ -123,8 +123,8 @@
 
                         <label class="form-label fw-bold small text-uppercase text-muted mb-3">Step 2: Enter Account Number</label>
                         <div class="mb-4">
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="form-control form-control-lg text-center font-monospace bg-light" id="account_number" placeholder="Enter Acc / Wallet No" required>
-                            <small class="text-muted d-block mt-2">Enter your 16-digit account or wallet number</small>
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="form-control form-control-lg text-center font-monospace bg-light" id="account_number" placeholder="Enter Acc / Wallet No" required maxlength="12">
+                            <small class="text-muted d-block mt-2" id="accountLengthHint">Enter your account or wallet number</small>
                         </div>
 
                         <div class="d-grid gap-2">
@@ -157,6 +157,8 @@
                         <form action="{{ route('payment.complete', $booking->id) }}" method="POST" id="paymentForm">
                             @csrf
                             <input type="hidden" name="payment_method" id="final_payment_method">
+                            <input type="hidden" name="bank_type" id="final_bank_type">
+                            <input type="hidden" name="account_number" id="final_account_number">
                             <input type="hidden" name="account_last4" id="final_account_last4">
                             <div class="d-grid gap-2">
                                 <button type="button" class="btn btn-success btn-lg rounded-pill" id="payButton" disabled>
@@ -206,6 +208,13 @@
     const timeoutForm = document.getElementById('timeoutForm');
     const cancellationForm = document.getElementById('cancellationForm');
     const totalTime = {{ $timeRemaining }};
+    const bankAccountDigits = @json($bankAccountDigits ?? []);
+    const bankMeta = {
+        'Bank of Bhutan (mBoB)': { key: 'bob', label: 'Bank of Bhutan' },
+        'Bhutan National Bank (mPAY)': { key: 'bnb', label: 'Bhutan National Bank' },
+        'T-Bank (T-Pay)': { key: 't_bank', label: 'T-Bank' },
+        'RMA (DK / Wallet)': { key: 'dk', label: 'DK Wallet' },
+    };
 
     function formatTime(seconds) {
         const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -256,11 +265,27 @@
     const backToStep1Btn = document.getElementById('backToStep1Btn');
     const backToStep2Btn = document.getElementById('backToStep2Btn');
     const accountInput = document.getElementById('account_number');
+    const accountLengthHint = document.getElementById('accountLengthHint');
+    const finalBankType = document.getElementById('final_bank_type');
+    const finalAccountNumber = document.getElementById('final_account_number');
+
+    function getExpectedDigits(bankType) {
+        const meta = bankMeta[bankType];
+        if (!meta) return 12;
+        return bankAccountDigits[meta.key] || 12;
+    }
+
+    function updateAccountHint(bankType) {
+        const digits = getExpectedDigits(bankType);
+        accountInput.maxLength = digits;
+        accountLengthHint.textContent = `Enter your ${digits}-digit account or wallet number`;
+    }
 
     // Step 1 to Step 2 transition
     continueToAccountBtn.addEventListener('click', function() {
         const selectedBank = document.querySelector('input[name="bank_type"]:checked').value;
         document.getElementById('selected_bank_display').textContent = selectedBank;
+        updateAccountHint(selectedBank);
         
         step1.style.display = 'none';
         step2.style.display = 'block';
@@ -276,18 +301,21 @@
 
     // Step 2 to Step 3 transition
     requestOtpBtn.addEventListener('click', function() {
+        const selectedBank = document.querySelector('input[name="bank_type"]:checked').value;
+        const expectedDigits = getExpectedDigits(selectedBank);
         const accNo = accountInput.value.trim();
-        if (accNo.length < 5) {
-            alert('Please enter a valid bank account or wallet number (minimum 5 digits).');
+        if (!/^[0-9]+$/.test(accNo) || accNo.length !== expectedDigits) {
+            alert(`Please enter a valid ${expectedDigits}-digit account or wallet number for ${selectedBank}.`);
             return;
         }
 
-        const selectedBank = document.querySelector('input[name="bank_type"]:checked').value;
         const last4 = accNo.slice(-4);
         
         document.getElementById('selected_bank_name').textContent = selectedBank;
         document.getElementById('ending_account').textContent = last4;
         document.getElementById('final_payment_method').value = selectedBank;
+        finalBankType.value = selectedBank;
+        finalAccountNumber.value = accNo;
         document.getElementById('final_account_last4').value = last4;
 
         // Animate loading

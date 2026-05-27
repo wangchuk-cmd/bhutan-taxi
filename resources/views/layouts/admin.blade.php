@@ -43,6 +43,102 @@
         .mobile-bottom-nav .nav-link.active {
             color: var(--primary);
         }
+
+        .alert {
+            border: 0;
+            border-radius: 18px;
+            box-shadow: 0 12px 34px rgba(15, 23, 42, 0.08);
+            padding: 1rem 1.1rem;
+        }
+
+        .modal-content {
+            border: 0;
+            border-radius: 20px;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+            overflow: hidden;
+        }
+
+        .system-flash-stack {
+            position: fixed;
+            top: 76px;
+            right: 16px;
+            z-index: 1080;
+            width: min(420px, calc(100vw - 32px));
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .system-flash-card {
+            pointer-events: auto;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 18px;
+            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
+            backdrop-filter: blur(10px);
+            padding: 14px 16px;
+            transition: transform 0.18s ease, opacity 0.18s ease;
+        }
+
+        .system-flash-card.system-flash-success { border-left: 4px solid #22c55e; }
+        .system-flash-card.system-flash-error { border-left: 4px solid #ef4444; }
+        .system-flash-card.system-flash-info { border-left: 4px solid #3b82f6; }
+
+        .system-flash-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            font-size: 18px;
+        }
+        .system-flash-success .system-flash-icon { background: rgba(34, 197, 94, 0.12); color: #16a34a; }
+        .system-flash-error .system-flash-icon { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+        .system-flash-info .system-flash-icon { background: rgba(59, 130, 246, 0.12); color: #2563eb; }
+
+        .system-flash-body { flex: 1 1 auto; min-width: 0; }
+        .system-flash-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            margin-bottom: 2px;
+        }
+        .system-flash-message {
+            color: #0f172a;
+            font-size: 14px;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+        .system-flash-close {
+            border: 0;
+            background: transparent;
+            color: #94a3b8;
+            padding: 0;
+            line-height: 1;
+            margin-left: 6px;
+        }
+        .system-flash-close:hover { color: #0f172a; }
+        .system-flash-hide {
+            transform: translateY(-8px);
+            opacity: 0;
+        }
+
+        @media (max-width: 576px) {
+            .system-flash-stack {
+                top: 12px;
+                left: 12px;
+                right: 12px;
+                width: auto;
+            }
+        }
     </style>
     @stack('styles')
 </head>
@@ -57,6 +153,10 @@
             <div class="d-flex align-items-center gap-2">
                 <a class="btn btn-sm btn-outline-light d-none d-lg-inline-flex" href="{{ route('home') }}">
                     <i class="bi bi-house me-1"></i>Main Site
+                </a>
+                <a class="btn btn-sm btn-outline-light position-relative" href="{{ route('notifications.index') }}" title="Notifications">
+                    <i class="bi bi-bell"></i>
+                    <span id="adminUnreadBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
                 </a>
                 <div class="dropdown">
                     <a class="nav-link text-white dropdown-toggle" href="#" data-bs-toggle="dropdown">
@@ -108,8 +208,11 @@
                 <a class="nav-link {{ request()->routeIs('admin.payouts*') ? 'active' : '' }}" href="{{ route('admin.payouts') }}">
                     <i class="bi bi-wallet2 me-2"></i>Payouts
                 </a>
-                <a class="nav-link {{ request()->routeIs('admin.reports*') ? 'active' : '' }}" href="{{ route('admin.reports') }}">
+                <a class="nav-link {{ request()->routeIs('admin.reports*') && request('tab') !== 'refunds' ? 'active' : '' }}" href="{{ route('admin.reports') }}">
                     <i class="bi bi-graph-up me-2"></i>Reports
+                </a>
+                <a class="nav-link {{ request()->routeIs('admin.refunds*') ? 'active' : '' }}" href="{{ route('admin.refunds') }}">
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>Refunds
                 </a>
                 
                 <div class="nav-section">Support</div>
@@ -129,13 +232,8 @@
 
         <!-- Main Content -->
         <div class="main-content flex-grow-1" style="margin-left: 220px; padding: 1rem;">
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2"></i>{{ session('success') }}<button class="btn-close" data-bs-dismiss="alert"></button></div>
-            @endif
-            @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}<button class="btn-close" data-bs-dismiss="alert"></button></div>
-            @endif
-            
+            @include('components.system-flash')
+
             @yield('content')
         </div>
     </div>
@@ -190,6 +288,9 @@
                         <a class="list-group-item list-group-item-action py-3" href="{{ route('admin.reports') }}">
                             <i class="bi bi-graph-up me-3 text-success"></i>Reports
                         </a>
+                        <a class="list-group-item list-group-item-action py-3" href="{{ route('admin.refunds') }}">
+                            <i class="bi bi-arrow-counterclockwise me-3 text-success"></i>Refunds
+                        </a>
                         <div class="list-group-item bg-light py-2 fw-bold small text-uppercase text-muted">Support</div>
                         <a class="list-group-item list-group-item-action py-3" href="{{ route('admin.complaints') }}">
                             <i class="bi bi-chat-dots me-3 text-warning"></i>Complaints
@@ -214,6 +315,7 @@
     <script src="{{ asset('js/dzongkhag-autocomplete.js') }}"></script>
     <script src="{{ asset('js/realtime-updates.js') }}"></script>
     <script src="{{ asset('js/phone-validation.js') }}"></script>
+    @stack('scripts')
     
     <script>
         // Mobile menu toggle
@@ -225,6 +327,18 @@
 
         // Normalize search date inputs to browser-local date to avoid HTML5 min-date loop.
         document.addEventListener('DOMContentLoaded', function () {
+            fetch(`{{ route('notifications.unreadCount') }}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    const badge = document.getElementById('adminUnreadBadge');
+                    if (!badge) return;
+                    if (data.count > 0) {
+                        badge.textContent = data.count;
+                        badge.classList.remove('d-none');
+                    }
+                })
+                .catch(() => {});
+
             const toLocalDateString = () => {
                 const now = new Date();
                 const offsetMs = now.getTimezoneOffset() * 60000;

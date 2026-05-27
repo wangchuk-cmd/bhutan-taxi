@@ -71,7 +71,7 @@
                                     </tr>
                                     <tr>
                                         <td class="text-muted py-0">Vehicle:</td>
-                                        <td class="fw-bold py-0">{{ $booking->trip->driver->vehicle_number }}</td>
+                                        <td class="fw-bold py-0">{{ $booking->trip->driver->taxi_plate_number ?? 'N/A' }}</td>
                                     </tr>
                                 </table>
                             </div>

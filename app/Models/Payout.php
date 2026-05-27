@@ -9,6 +9,7 @@ class Payout extends Model
     protected $fillable = [
         'driver_id',
         'trip_id',
+        'booking_id',
         'total_amount',
         'service_charge',
         'payout_amount',
@@ -31,6 +32,11 @@ class Payout extends Model
     public function trip()
     {
         return $this->belongsTo(Trip::class);
+    }
+
+    public function booking()
+    {
+        return $this->belongsTo(Booking::class);
     }
 
     public function scopePending($query)

@@ -42,6 +42,16 @@ class Booking extends Model
         return $this->hasOne(Payment::class);
     }
 
+    public function refundRequests()
+    {
+        return $this->hasMany(RefundRequest::class);
+    }
+
+    public function latestRefundRequest()
+    {
+        return $this->hasOne(RefundRequest::class)->latestOfMany();
+    }
+
     public function rating()
     {
         return $this->hasOne(Rating::class);

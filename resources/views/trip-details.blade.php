@@ -61,11 +61,30 @@
                         </div>
                         <div class="col-md-6">
                             <h6 class="text-muted mb-3">Driver & Vehicle</h6>
-                            <div class="d-flex mb-3">
-                                <i class="bi bi-person-circle text-success me-3 fs-4"></i>
+                            <div class="d-flex align-items-center mb-3">
+                                @if($trip->driver->user->profile_image)
+                                    <img src="{{ asset('storage/' . $trip->driver->user->profile_image) }}" alt="{{ $trip->driver->user->name }}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid #d1fae5; margin-right: 14px;">
+                                @else
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle bg-success-subtle text-success me-3" style="width: 48px; height: 48px; flex: 0 0 auto;">
+                                        <i class="bi bi-person-fill fs-4"></i>
+                                    </div>
+                                @endif
                                 <div>
                                     <small class="text-muted d-block">Driver Name</small>
                                     <strong>{{ $trip->driver->user->name }}</strong>
+                                    @if($trip->driver->show_age_range_to_public || $trip->driver->show_experience_to_public)
+                                        <div class="text-muted small mt-1">
+                                            @if($trip->driver->show_age_range_to_public && $trip->driver->age_range)
+                                                <span>Age {{ $trip->driver->age_range }}</span>
+                                            @endif
+                                            @if($trip->driver->show_experience_to_public && $trip->driver->years_of_experience !== null)
+                                                @if($trip->driver->show_age_range_to_public && $trip->driver->age_range)
+                                                    ·
+                                                @endif
+                                                <span>Experience {{ $trip->driver->years_of_experience }} years</span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
 
@@ -116,13 +135,14 @@
                                     <strong>{{ $trip->driver->vehicle_type }} ({{ $trip->driver->fuel_type === 'Electric' ? '⚡ Electric' : '🛢️ Fuel' }})</strong>
                                 </div>
                             </div>
-                            <div class="d-flex">
+                            <div class="d-flex mb-3">
                                 <i class="bi bi-credit-card-2-front text-success me-3 fs-4"></i>
                                 <div>
                                     <small class="text-muted d-block">Plate Number</small>
                                     <strong>{{ $trip->driver->taxi_plate_number }}</strong>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </div>

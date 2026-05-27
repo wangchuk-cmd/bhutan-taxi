@@ -28,7 +28,11 @@
                                 <span>{{ $trip->departure_datetime->format('h:i A') }}</span>
                             </div>
                             <div class="trip-info-item">
-                                <i class="bi bi-person text-primary"></i>
+                                @if($trip->driver->user->profile_image)
+                                    <img src="{{ asset('storage/' . $trip->driver->user->profile_image) }}" alt="{{ $trip->driver->user->name }}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; border: 1px solid #dbe4f0;">
+                                @else
+                                    <i class="bi bi-person-circle text-primary"></i>
+                                @endif
                                 <span>{{ $trip->driver->user->name }}</span>
                             </div>
                             <div class="trip-info-item">

@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/booking/{id}', [BookingController::class, 'show'])->name('bookings.show');
     Route::get('/booking/{id}/receipt', [BookingController::class, 'receipt'])->name('booking.receipt');
     Route::post('/booking/{id}/cancel', [BookingController::class, 'cancel'])->name('booking.cancel');
+    Route::post('/booking/{id}/refund-request', [BookingController::class, 'requestRefund'])->name('booking.refund.request');
 
     // Payments
     Route::get('/payment/{bookingId}', [PaymentController::class, 'process'])->name('payment.process');
@@ -78,6 +79,7 @@ Route::middleware('auth')->group(function () {
 // Driver Routes
 Route::prefix('driver')->middleware(['auth', 'driver'])->group(function () {
     Route::get('/dashboard', [DriverController::class, 'dashboard'])->name('driver.dashboard');
+    Route::get('/reports', [DriverController::class, 'reports'])->name('driver.reports');
     Route::get('/trips', [DriverController::class, 'trips'])->name('driver.trips');
     Route::get('/trips/create', [DriverController::class, 'createTrip'])->name('driver.trips.create');
     Route::post('/trips', [DriverController::class, 'storeTrip'])->name('driver.trips.store');
@@ -157,6 +159,9 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/payouts', [AdminController::class, 'payouts'])->name('admin.payouts');
     Route::post('/payouts/{id}/process', [AdminController::class, 'processPayout'])->name('admin.payouts.process');
     Route::post('/payouts/process-all', [AdminController::class, 'processAllPayouts'])->name('admin.payouts.processAll');
+
+    // Refunds Management
+    Route::get('/refunds', [AdminController::class, 'refunds'])->name('admin.refunds');
     
     // Complaints Management
     Route::get('/complaints', [AdminController::class, 'complaints'])->name('admin.complaints');
@@ -192,6 +197,12 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     
     // Users Management
     Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
+    Route::get('/users/create/passenger', [AdminController::class, 'createPassenger'])->name('admin.users.createPassenger');
+    Route::post('/users/passengers', [AdminController::class, 'storePassenger'])->name('admin.users.storePassenger');
+    Route::get('/users/create/driver', [AdminController::class, 'createDriver'])->name('admin.users.createDriver');
+    Route::post('/users/drivers', [AdminController::class, 'storeDriver'])->name('admin.users.storeDriver');
+    Route::get('/users/{id}/edit', [AdminController::class, 'editUser'])->name('admin.users.edit');
+    Route::put('/users/{id}', [AdminController::class, 'updateUser'])->name('admin.users.update');
     Route::post('/users/{id}/role', [AdminController::class, 'updateUserRole'])->name('admin.users.role');
 });
 

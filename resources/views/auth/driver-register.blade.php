@@ -47,8 +47,14 @@
                                 <label class="form-label">Phone Number</label>
                                 <input type="tel" name="phone_number" class="form-control" 
                                        value="{{ old('phone_number') }}" placeholder="e.g., 17123456" 
-                                       pattern="[0-9]+" inputmode="numeric" required>
+                                        pattern="{{ \App\Models\Setting::getPhoneNumberPattern() }}" maxlength="{{ \App\Models\Setting::getPhoneNumberDigits() }}" inputmode="numeric" title="{{ \App\Models\Setting::getPhoneNumberHint() }}" required>
                             </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Date of Birth</label>
+                            <input type="date" name="date_of_birth" class="form-control" value="{{ old('date_of_birth') }}" required>
+                            <small class="text-muted">Used to calculate driver age in admin reports.</small>
                         </div>
 
                         <div class="mb-3">
