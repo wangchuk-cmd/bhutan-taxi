@@ -496,7 +496,7 @@
 <!-- Dashboard Charts Row -->
 <div class="row g-3 mt-1">
     <div class="col-12 col-xl-6">
-        <div class="dashboard-card h-100">
+        <div class="dashboard-card h-100 driver-age-range">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>Driver Age Ranges</h5>
             </div>
@@ -504,13 +504,15 @@
                 <p class="text-muted small mb-3">Driver age distribution based on recorded date of birth.</p>
                 @if(array_sum($ageRangeChart['values']) > 0)
                     <div class="row g-2 align-items-stretch">
-                        <div class="col-12 col-md-7" style="min-height: 240px;">
-                            <canvas id="ageRangeChart"></canvas>
+                        <div class="col-12 col-md-6" style="min-height: 260px;">
+                            <div class="h-100 d-flex align-items-center justify-content-center chart-wrapper">
+                                <canvas id="ageRangeChart" style="max-width: 220px; max-height: 220px; width: 100%; height: auto;"></canvas>
+                            </div>
                         </div>
-                        <div class="col-12 col-md-5">
+                        <div class="col-12 col-md-6">
                             @php $totalDrivers = array_sum($ageRangeChart['values']); @endphp
                             <div class="summary-panel h-100">
-                                <div class="d-flex align-items-start justify-content-between mb-4">
+                                <div class="d-flex align-items-start justify-content-between mb-3">
                                     <div>
                                         <h6 class="mb-1">Age Range Summary</h6>
                                         <p class="text-muted small mb-0">Drivers grouped by public age range.</p>
@@ -520,7 +522,7 @@
                                 <div class="range-list">
                                     @foreach($driverAgeRanges as $range)
                                         @php $percent = $totalDrivers ? round(($range['count'] / $totalDrivers) * 100) : 0; @endphp
-                                        <div class="range-item mb-3">
+                                        <div class="range-item">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <span class="range-label">{{ $range['label'] }}</span>
                                                 <span class="range-count badge bg-secondary-subtle text-secondary">{{ $range['count'] }}</span>
@@ -557,12 +559,12 @@
                 <p class="text-muted small mb-3">Booking volume by route across all customer and admin-created bookings.</p>
                 @if(!empty($routeUsageChart['labels']))
                     <div class="row g-2 align-items-stretch">
-                        <div class="col-12 col-lg-7" style="min-height: 240px;">
+                        <div class="col-12 col-lg-6" style="min-height: 260px;">
                             <div class="h-100">
                                 <canvas id="routeUsageChart"></canvas>
                             </div>
                         </div>
-                        <div class="col-12 col-lg-5">
+                        <div class="col-12 col-lg-6">
                             <div class="summary-panel h-100">
                                 <div class="d-flex align-items-start justify-content-between mb-3">
                                     <div>

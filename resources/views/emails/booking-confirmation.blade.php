@@ -131,7 +131,6 @@
             <h3 style="margin-top: 0; color: #0d6efd;">Driver Information</h3>
             
             <div class="detail-row">
-                <span class="label">Driver Name:</span>
                 <span class="value">{{ $booking->trip->driver->user->name }}</span>
             </div>
             
